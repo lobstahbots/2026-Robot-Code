@@ -13,7 +13,7 @@ public class Climber extends SubsystemBase {
     private final SparkClosedLoopController climberController;
 
     public Climber(int ClimberMotorID) {
-        //Motor initialization
+         //Motor initialization
         this.climberMotor = new SparkMax(ClimberMotorID, MotorType.kBrushless);
         //Encoder initialization
         climberEncoder = climberMotor.getEncoder();
