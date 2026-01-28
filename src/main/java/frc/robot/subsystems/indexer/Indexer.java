@@ -9,8 +9,8 @@ public class Indexer extends SubsystemBase {
     private final SparkMax indexer;
     private int indexerSpeed;
 
-    public Indexer(int inexerMotorID, int indexerSpeed) {
-        indexer = new SparkMax(inexerMotorID, MotorType.kBrushless);
+    public Indexer(int indexerMotorID, int indexerSpeed) {
+        indexer = new SparkMax(indexerMotorID, MotorType.kBrushless);
         this.indexerSpeed = indexerSpeed;
     }
 
