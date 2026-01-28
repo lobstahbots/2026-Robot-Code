@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Climber;
+package frc.robot.subsystems.climber;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
@@ -9,9 +9,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkBase.ControlType;
 
 public class Climber extends SubsystemBase {
     private static final double DEPLOY_POSITION = 3.00; // Change this value as needed (Unit is rotations)
@@ -33,11 +31,11 @@ public class Climber extends SubsystemBase {
         SparkMaxConfig config = new SparkMaxConfig();
         config.smartCurrentLimit(20); //20 amps
         config.idleMode(IdleMode.kBrake);
-        climberMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersist); // Note to set PID in this line
+        climberMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters); // Note to set PID in this line
     }
 
     public void gotoPOS(double position) {
-        climberController.setReference(position, SparkClosedLoopController.ControlType.kPosition);
+        climberController.setReference(position, ControlType.kPosition);
     }
 
 
