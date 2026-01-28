@@ -6,6 +6,12 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 
 public class Climber extends SubsystemBase {
     private static final double DEPLOY_POSITION = 3.00; // Change this value as needed (Unit is rotations)
@@ -25,8 +31,9 @@ public class Climber extends SubsystemBase {
         climberController = climberMotor.getClosedLoopController();
 
         SparkMaxConfig config = new SparkMaxConfig();
-        
-        climberMotor.configure(config); // Note to set PID in this line
+        config.smartCurrentLimit(20); //20 amps
+        config.idleMode(IdleMode.kBrake);
+        climberMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersist); // Note to set PID in this line
     }
 
     public void gotoPOS(double position) {
@@ -35,10 +42,10 @@ public class Climber extends SubsystemBase {
 
 
     public void deploy() {
-        climberMotor.gotoPOS(DEPLOY_POSITION);
+        gotoPOS(DEPLOY_POSITION);
     }
 
     public void retract() {
-        climberMotor.gotoPOS(RETRACT_POSITION);
+        gotoPOS(RETRACT_POSITION);
     }
 }
