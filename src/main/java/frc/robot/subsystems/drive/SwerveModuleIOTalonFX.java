@@ -4,36 +4,49 @@
 
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import java.util.Arrays;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.REVLibError;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.tempControl.MonitoredSparkMax;
 import frc.robot.util.tempControl.TemperatureMonitor;
 
-public class SwerveModuleIOSparkMax implements SwerveModuleIO {
+public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     private final MonitoredSparkMax angleMotor;
-    private final MonitoredSparkMax driveMotor;
-    private final RelativeEncoder drivingEncoder;
+    private final TalonFX driveMotor;
     private final AbsoluteEncoder angleAbsoluteEncoder;
     private Rotation2d angularOffset;
     private final int moduleID;
     private final TemperatureMonitor monitor;
+    private final StatusSignal<AngularVelocity> driveVelocity;
+    private final StatusSignal<Angle> drivePosition;
+    private final StatusSignal<Voltage> driveVoltage;
+    private final StatusSignal<Current> driveCurrent;
 
     /**
      * Creates a new SwerveModule for real cases.
@@ -43,20 +56,25 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
      * @param driveMotorID         The CAN ID of the motor controlling drive speed.
      * @param angularOffsetDegrees The offset angle in degrees.
      */
-    public SwerveModuleIOSparkMax(int moduleID, String name, int angleMotorID, int driveMotorID,
+    public SwerveModuleIOTalonFX(int moduleID, String name, int angleMotorID, int driveMotorID,
             double angularOffsetDegrees, boolean inverted) {
         this.moduleID = moduleID;
 
         this.angleMotor = new MonitoredSparkMax(angleMotorID, MotorType.kBrushless, name + " angle motor");
-        this.driveMotor = new MonitoredSparkMax(driveMotorID, MotorType.kBrushless, name + " drive motor");
+        this.driveMotor = new TalonFX(driveMotorID);
 
-        var driveEncoderConfig = new EncoderConfig()
-                .positionConversionFactor(SwerveConstants.DRIVING_ENCODER_POSITION_CONVERSION_FACTOR)
-                .velocityConversionFactor(SwerveConstants.DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR);
-        var driveMotorConfig = new SparkMaxConfig().apply(driveEncoderConfig)
-                .smartCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT).idleMode(IdleMode.kBrake)
-                .voltageCompensation(12).inverted(false);
-        driveMotor.configure(driveMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        driveVelocity = driveMotor.getVelocity();
+        drivePosition = driveMotor.getPosition();
+        driveVoltage = driveMotor.getMotorVoltage();
+        driveCurrent = driveMotor.getStatorCurrent();
+
+        var driveMotorConfig = new TalonFXConfiguration()
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs().withSupplyCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT)
+                                .withStatorCurrentLimit(3 * DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT))
+                .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(RobotConstants.DRIVE_GEAR_RATIO))
+                .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+        driveMotor.getConfigurator().apply(driveMotorConfig);
 
         var angleMotorConfig = new SparkMaxConfig().smartCurrentLimit(DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT)
                 .idleMode(IdleMode.kBrake).voltageCompensation(12).inverted(inverted);
@@ -65,13 +83,12 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
                 .velocityConversionFactor(SwerveConstants.TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR);
         angleMotor.configure(angleMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        drivingEncoder = driveMotor.getEncoder();
         angleAbsoluteEncoder = angleMotor.getAbsoluteEncoder();
 
-        monitor = new TemperatureMonitor(Arrays.asList(driveMotor, angleMotor));
+        monitor = new TemperatureMonitor(Arrays.asList(angleMotor));
 
         this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees);
-        drivingEncoder.setPosition(0);
+        driveMotor.setPosition(0);
         resetEncoders();
     }
 
@@ -88,7 +105,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
      *         {@link SwerveModuleState}.
      */
     public SwerveModuleState getState() {
-        return new SwerveModuleState(drivingEncoder.getVelocity() * RobotConstants.WHEEL_DIAMETER * Math.PI,
+        return new SwerveModuleState(driveVelocity.getValueAsDouble() * RobotConstants.WHEEL_DIAMETER * Math.PI,
                 new Rotation2d(angleAbsoluteEncoder.getPosition() + angularOffset.getRadians()));
     }
 
@@ -108,7 +125,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
      *         {@link SwerveModulePosition}.
      */
     public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(drivingEncoder.getPosition(),
+        return new SwerveModulePosition(drivePosition.getValueAsDouble(),
                 new Rotation2d(angleAbsoluteEncoder.getPosition() + angularOffset.getRadians()));
     }
 
@@ -118,8 +135,8 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
      * @param mode the {@link IdleMode} to set motors to.
      */
     public void setDriveIdleMode(IdleMode mode) {
-        driveMotor.configure(new SparkMaxConfig().idleMode(mode), ResetMode.kNoResetSafeParameters,
-                PersistMode.kPersistParameters);
+        driveMotor.getConfigurator().apply(new MotorOutputConfigs()
+                .withNeutralMode(mode == IdleMode.kBrake ? NeutralModeValue.Brake : NeutralModeValue.Coast));
     }
 
     /**
@@ -134,7 +151,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
     /** Zeroes the drive encoder. */
     public void resetEncoders() {
-        drivingEncoder.setPosition(0);
+        driveMotor.setPosition(0);
     }
 
     /**
@@ -156,14 +173,10 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     }
 
     public void updateInputs(ModuleIOInputs inputs) {
-        inputs.drivePosition = driveMotor.getLastError() == REVLibError.kOk
-                ? Rotation2d.fromRotations(drivingEncoder.getPosition())
-                : inputs.drivePosition;
-        inputs.driveVelocityRadPerSec = driveMotor.getLastError() == REVLibError.kOk
-                ? Units.rotationsToRadians(drivingEncoder.getVelocity())
-                : inputs.driveVelocityRadPerSec;
-        inputs.driveAppliedVolts = driveMotor.getAppliedOutput() * driveMotor.getBusVoltage();
-        inputs.driveCurrentAmps = driveMotor.getOutputCurrent();
+        inputs.drivePosition = new Rotation2d(drivePosition.getValue());
+        inputs.driveVelocityRadPerSec = driveVelocity.getValue().in(RadiansPerSecond);
+        inputs.driveAppliedVolts = driveVoltage.getValueAsDouble();
+        inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
 
         inputs.turnAbsolutePosition = angleMotor.getLastError() == REVLibError.kOk
                 ? Rotation2d.fromRadians(-angleAbsoluteEncoder.getPosition() - angularOffset.getRadians())
@@ -178,5 +191,9 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
     public void periodic() {
         monitor.monitor();
+        drivePosition.refresh();
+        driveVelocity.refresh();
+        driveCurrent.refresh();
+        driveVoltage.refresh();
     }
 }
