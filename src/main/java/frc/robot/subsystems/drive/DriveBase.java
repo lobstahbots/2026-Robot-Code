@@ -30,8 +30,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.FieldConstants;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.DriveConstants.BackLeftModuleConstants;
 import frc.robot.Constants.DriveConstants.BackRightModuleConstants;
@@ -302,8 +302,8 @@ public class DriveBase extends CharacterizableSubsystem {
             } else
                 Logger.recordOutput("Vision/" + camera.getName() + "Used", false);
         }
-        resetPose(new Pose2d(MathUtil.clamp(getPose().getX(), 0, FieldConstants.FIELD_LENGTH),
-                MathUtil.clamp(getPose().getY(), 0, FieldConstants.FIELD_WIDTH), getPose().getRotation()));
+        resetPose(new Pose2d(MathUtil.clamp(getPose().getX(), 0, FieldConstants.fieldLength),
+                MathUtil.clamp(getPose().getY(), 0, FieldConstants.fieldWidth), getPose().getRotation()));
         field.setRobotPose(getPose());
         Logger.recordOutput("Odometry", getPose());
         Logger.recordOutput("Vision Less", visionLessOdometry.getEstimatedPosition());
