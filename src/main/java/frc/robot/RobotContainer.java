@@ -16,12 +16,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.AutoFactory.CharacterizationRoutine;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.BackLeftModuleConstants;
@@ -49,51 +45,6 @@ public class RobotContainer {
     private final LEDs leds;
 
     private final DriveBase driveBase;
-
-    //sticks
-    private final Joystick driverJoystick = new Joystick(ControllerIOConstants.DRIVER_CONTROLLER_PORT);
-    private final Joystick operatorJoystick = new Joystick(ControllerIOConstants.OPERATOR_CONTROLLER_PORT);
-
-    //Driver
-    private final Trigger driverLTButton = new Trigger(
-            () -> driverJoystick.getRawAxis(ControllerIOConstants.LT_BUTTON) > 0.2); //Outake Coral
-    private final Trigger driverRTButton = new Trigger(
-            () -> driverJoystick.getRawAxis(ControllerIOConstants.RT_BUTTON) > 0.2); //Outake Algae
-
-    private final JoystickButton driverLBButton = new JoystickButton(driverJoystick, ControllerIOConstants.LB_BUTTON); //Barge automation
-    private final JoystickButton driverRBButton = new JoystickButton(driverJoystick, ControllerIOConstants.RB_BUTTON); //Intake Sequence
-
-    private final JoystickButton driverLeftPaddle = new JoystickButton(driverJoystick,
-            ControllerIOConstants.LEFT_PADDLE); //Autoalign left reef
-    private final JoystickButton driverRightPaddle = new JoystickButton(driverJoystick,
-            ControllerIOConstants.RIGHT_PADDLE); //Autoalign right reef
-
-    //Operator
-    private final Trigger operatorLTButton = new Trigger(
-            () -> operatorJoystick.getRawAxis(ControllerIOConstants.LT_BUTTON) > 0.5); //Outake Coral
-    private final Trigger operatorRTButton = new Trigger(
-            () -> operatorJoystick.getRawAxis(ControllerIOConstants.RT_BUTTON) > 0.5); //Intake Coral
-
-    private final JoystickButton operatorLBButton = new JoystickButton(operatorJoystick,
-            ControllerIOConstants.LB_BUTTON); //Outake Algae
-    private final JoystickButton operatorRBButton = new JoystickButton(operatorJoystick,
-            ControllerIOConstants.RB_BUTTON); //L1 Setpoint (potentially to change)
-
-    private final JoystickButton operatorXButton = new JoystickButton(operatorJoystick, ControllerIOConstants.X_BUTTON); //L2
-    private final JoystickButton operatorYButton = new JoystickButton(operatorJoystick, ControllerIOConstants.Y_BUTTON); //L3
-    private final JoystickButton operatorBButton = new JoystickButton(operatorJoystick, ControllerIOConstants.B_BUTTON); //L4
-    private final JoystickButton operatorAButton = new JoystickButton(operatorJoystick, ControllerIOConstants.A_BUTTON); //Theoretically L1 or intake
-
-    private final JoystickButton operatorLeftPaddle = new JoystickButton(operatorJoystick,
-            ControllerIOConstants.LEFT_PADDLE);
-    private final JoystickButton operatorRightPaddle = new JoystickButton(operatorJoystick,
-            ControllerIOConstants.RIGHT_PADDLE);
-
-    private final POVButton operatorDpadUp = new POVButton(operatorJoystick, ControllerIOConstants.D_PAD_UP); // L3 Algae Removal
-    private final POVButton operatorDpadDown = new POVButton(operatorJoystick, ControllerIOConstants.D_PAD_DOWN); // L2 Algae Removal
-    private final POVButton operatorDpadLeft = new POVButton(operatorJoystick, ControllerIOConstants.D_PAD_LEFT); // Barge Setpoint
-    private final POVButton operatorDpadRight = new POVButton(operatorJoystick, ControllerIOConstants.D_PAD_RIGHT); // Processor Setpoint
-
 
     private final AutonSelector<Object> autoChooser = new AutonSelector<>("Auto Chooser", "Do Nothing", List.of(),
             () -> Commands.none());
@@ -164,9 +115,9 @@ public class RobotContainer {
 
     private void setDefaultCommands() {
         driveBase.setDefaultCommand(
-                driveBase.joystickDrive(() -> -driverJoystick.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
-                        () -> -driverJoystick.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
-                        () -> -driverJoystick.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL)));
+                driveBase.joystickDrive(() -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL)));
     }
 
     /**
@@ -184,11 +135,11 @@ public class RobotContainer {
     }
 
     public boolean getOperatorConnected() {
-        return operatorJoystick.isConnected();
+        return Controllers.operator.isConnected();
     }
 
     public boolean getDriverConnected() {
-        return driverJoystick.isConnected();
+        return Controllers.driver.isConnected();
     }
 
     public void smartDashSetup() {
