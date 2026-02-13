@@ -19,7 +19,6 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.hal.HALUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -261,6 +260,8 @@ public final class Constants {
             public static final double MAX_DRIVE_SPEED = 5.23; // from https://www.reca.lc/drive
             public static final Mass WEIGHT = Pounds.of(150);
             public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
+
+            public static final int GYRO_ID = 3;
         }
 
         public static class DriveConstants {
@@ -394,17 +395,14 @@ public final class Constants {
 
     public static class VisionConstants {
         public static final PoseStrategy POSE_STRATEGY = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
-        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = new HashMap<>();
+        public static final Map<String, Transform3d> WAFFLE_CAMERA_TRANSFORMS = new HashMap<>();
         static {
-            CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42), Inches.of(7.308),
+            WAFFLE_CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42), Inches.of(7.308),
                     new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(-35))));
-            CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42), Inches.of(7.164),
+            WAFFLE_CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42), Inches.of(7.164),
                     new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(35))));
-            CAMERA_TRANSFORMS.put("backleft",
-                    new Transform3d(0.067, 0.274, 0.94, new Rotation3d(new Quaternion(0.04, 0.27, 0.047, 0.96))));
-            CAMERA_TRANSFORMS.put("backright", new Transform3d(0.067, -0.274, 0.94,
-                    new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(145))));
         }
+        public static final Map<String, Transform3d> COMP_CAMERA_TRANSFORMS = new HashMap<>();
         public static final double VISION_ODOMETRY_DIFFERENCE_FILTER_THRESHOLD = 5;
         public static final int CAMERA_RES_WIDTH = 1280;
         public static final int CAMERA_RES_HEIGHT = 960;

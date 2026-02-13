@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.AutoFactory.CharacterizationRoutine;
+import frc.robot.Constants.Comp;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.BackLeftModuleConstants;
 import frc.robot.Constants.DriveConstants.BackRightModuleConstants;
@@ -29,11 +30,13 @@ import frc.robot.Constants.SimConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.drive.DriveBase;
 import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIOCanandgyro;
 import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.SwerveModuleIO;
 import frc.robot.subsystems.drive.SwerveModuleIOSim;
 import frc.robot.subsystems.drive.SwerveModuleIOSparkMax;
+import frc.robot.subsystems.drive.SwerveModuleIOTalonFX;
 import frc.robot.subsystems.vision.Camera;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOSim;
@@ -59,23 +62,42 @@ public class RobotContainer {
      */
     public RobotContainer() {
         leds = new LEDs();
-        if (Robot.isReal()) {
+        if (Constants.getRobot() == Constants.RobotType.WAFFLE && Constants.getMode() == Constants.RobotMode.REAL) {
             SwerveModuleIOSparkMax frontLeft = new SwerveModuleIOSparkMax(FrontLeftModuleConstants.moduleID,
                     "Front left ", FrontLeftModuleConstants.angleID, FrontLeftModuleConstants.driveID,
                     FrontLeftModuleConstants.angleOffset, FrontLeftModuleConstants.inverted);
             SwerveModuleIOSparkMax frontRight = new SwerveModuleIOSparkMax(FrontRightModuleConstants.moduleID,
-                    " Front right", FrontRightModuleConstants.angleID, FrontRightModuleConstants.driveID,
+                    "Front right", FrontRightModuleConstants.angleID, FrontRightModuleConstants.driveID,
                     FrontRightModuleConstants.angleOffset, FrontRightModuleConstants.inverted);
-            SwerveModuleIOSparkMax backLeft = new SwerveModuleIOSparkMax(BackLeftModuleConstants.moduleID, " Back left",
+            SwerveModuleIOSparkMax backLeft = new SwerveModuleIOSparkMax(BackLeftModuleConstants.moduleID, "Back left",
                     BackLeftModuleConstants.angleID, BackLeftModuleConstants.driveID,
                     BackLeftModuleConstants.angleOffset, BackLeftModuleConstants.inverted);
             SwerveModuleIOSparkMax backRight = new SwerveModuleIOSparkMax(BackRightModuleConstants.moduleID,
                     "Back right", BackRightModuleConstants.angleID, BackRightModuleConstants.driveID,
                     BackRightModuleConstants.angleOffset, BackRightModuleConstants.inverted);
 
-            List<Camera> cameras = VisionConstants.CAMERA_TRANSFORMS.keySet().stream()
+            List<Camera> cameras = VisionConstants.WAFFLE_CAMERA_TRANSFORMS.keySet().stream()
                     .map(name -> new Camera(new CameraIOPhoton(name))).toList();
             driveBase = new DriveBase(new GyroIONavX(), cameras, frontLeft, frontRight, backLeft, backRight, false);
+        } else if (Constants.getRobot() == Constants.RobotType.COMP
+                && Constants.getMode() == Constants.RobotMode.REAL) {
+            SwerveModuleIOTalonFX frontLeft = new SwerveModuleIOTalonFX(FrontLeftModuleConstants.moduleID,
+                    "Front left ", FrontLeftModuleConstants.angleID, FrontLeftModuleConstants.driveID,
+                    FrontLeftModuleConstants.angleOffset, FrontLeftModuleConstants.inverted);
+            SwerveModuleIOTalonFX frontRight = new SwerveModuleIOTalonFX(FrontRightModuleConstants.moduleID,
+                    "Front right", FrontRightModuleConstants.angleID, FrontRightModuleConstants.driveID,
+                    FrontRightModuleConstants.angleOffset, FrontRightModuleConstants.inverted);
+            SwerveModuleIOTalonFX backLeft = new SwerveModuleIOTalonFX(BackLeftModuleConstants.moduleID, "Back left",
+                    BackLeftModuleConstants.angleID, BackLeftModuleConstants.driveID,
+                    BackLeftModuleConstants.angleOffset, BackLeftModuleConstants.inverted);
+            SwerveModuleIOTalonFX backRight = new SwerveModuleIOTalonFX(BackRightModuleConstants.moduleID, "Back right",
+                    BackRightModuleConstants.angleID, BackRightModuleConstants.driveID,
+                    BackRightModuleConstants.angleOffset, BackRightModuleConstants.inverted);
+
+            List<Camera> cameras = VisionConstants.COMP_CAMERA_TRANSFORMS.keySet().stream()
+                    .map(name -> new Camera(new CameraIOPhoton(name))).toList();
+            driveBase = new DriveBase(new GyroIOCanandgyro(Comp.RobotConstants.GYRO_ID), cameras, frontLeft, frontRight,
+                    backLeft, backRight, false);
         } else if (!SimConstants.REPLAY) {
             driveSimulation = new SwerveDriveSimulation(DriveConstants.MAPLE_SIM_CONFIG,
                     new Pose2d(3, 3, new Rotation2d()));
@@ -89,7 +111,7 @@ public class RobotContainer {
 
             List<Camera> cameras;
             if (SimConstants.VISION_SIM) {
-                cameras = VisionConstants.CAMERA_TRANSFORMS.keySet().stream()
+                cameras = VisionConstants.COMP_CAMERA_TRANSFORMS.keySet().stream()
                         .map(name -> new Camera(new CameraIOSim(name))).toList();
             } else {
                 cameras = new ArrayList<>();
@@ -101,11 +123,10 @@ public class RobotContainer {
                     new SwerveModuleIO() {}, new SwerveModuleIO() {}, false);
         }
 
-        this.autoFactory = new AutoFactory(driveBase, autoChooser::getResponses,
-                (Pose2d newPose) -> {
-                    if (Robot.isSimulation()) driveSimulation.setSimulationWorldPose(newPose);
-                    driveBase.resetPose(newPose);
-                });
+        this.autoFactory = new AutoFactory(driveBase, autoChooser::getResponses, (Pose2d newPose) -> {
+            if (Robot.isSimulation()) driveSimulation.setSimulationWorldPose(newPose);
+            driveBase.resetPose(newPose);
+        });
 
         setDefaultCommands();
         smartDashSetup();
@@ -127,12 +148,12 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         Command command = autoChooser.getCommand();
-        if (Robot.isSimulation()) command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
+        if (Robot.isSimulation())
+            command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
         return command;
     }
 
-    public void configureButtonBindings() {
-    }
+    public void configureButtonBindings() {}
 
     public boolean getOperatorConnected() {
         return Controllers.operator.isConnected();
@@ -145,22 +166,21 @@ public class RobotContainer {
     public void smartDashSetup() {
         autoChooser.addRoutine("Leave", List.of(), autoFactory::getLeaveAuto);
 
-        autoChooser.addRoutine("Characterize", List.of(
-                new AutoQuestion<>("Which Subsystem?", Map.of("DriveBase", driveBase)),
-                new AutoQuestion<>("Which Routine",
-                        Map.of("Quasistatic Forward", CharacterizationRoutine.QUASISTATIC_FORWARD,
-                                "Quasistatic Backward", CharacterizationRoutine.QUASISTATIC_BACKWARD, "Dynamic Forward",
-                                CharacterizationRoutine.DYNAMIC_FORWARD, "Dynamic Backward",
-                                CharacterizationRoutine.DYNAMIC_BACKWARD))),
+        autoChooser.addRoutine("Characterize",
+                List.of(new AutoQuestion<>("Which Subsystem?", Map.of("DriveBase", driveBase)),
+                        new AutoQuestion<>("Which Routine",
+                                Map.of("Quasistatic Forward", CharacterizationRoutine.QUASISTATIC_FORWARD,
+                                        "Quasistatic Backward", CharacterizationRoutine.QUASISTATIC_BACKWARD,
+                                        "Dynamic Forward", CharacterizationRoutine.DYNAMIC_FORWARD, "Dynamic Backward",
+                                        CharacterizationRoutine.DYNAMIC_BACKWARD))),
                 autoFactory::getCharacterizationRoutine);
     }
 
     public void displaySimField() {
-        if (Robot.isReal() || SimConstants.REPLAY) return;
+        if (Constants.getMode() != Constants.RobotMode.SIM) return;
 
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
-        Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
-        Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+        Logger.recordOutput("FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
         CameraIOSim.addSimPose(new Pose3d(driveSimulation.getSimulatedDriveTrainPose()));
     }
 
