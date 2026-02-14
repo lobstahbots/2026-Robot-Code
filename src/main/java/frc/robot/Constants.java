@@ -403,6 +403,7 @@ public final class Constants {
                     new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(35))));
         }
         public static final Map<String, Transform3d> COMP_CAMERA_TRANSFORMS = new HashMap<>();
+        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = getRobot() == RobotType.WAFFLE ? WAFFLE_CAMERA_TRANSFORMS : COMP_CAMERA_TRANSFORMS;
         public static final double VISION_ODOMETRY_DIFFERENCE_FILTER_THRESHOLD = 5;
         public static final int CAMERA_RES_WIDTH = 1280;
         public static final int CAMERA_RES_HEIGHT = 960;
