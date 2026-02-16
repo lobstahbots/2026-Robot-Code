@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
   }
 
   public double getArmVelocity() {
-    return inputs.ArmVelocity;
+    return inputs.armVelocity;
   }
 
   public double getRollerVelocity() {
