@@ -293,6 +293,8 @@ public final class Constants {
     public static class IntakeConstants {
 
         public static final int CURRENT_LIMIT = 40;
+        public static final double ARM_DEPLOY_SPEED = 1.0;
+        public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
         
     }
 

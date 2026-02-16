@@ -21,6 +21,8 @@ public interface IntakeIO {
         public double rollerCurrentAmps = 0.0;
 
         public double rollerTempCelcius = 0.0;
+
+        public boolean isDeployed = false;
     }
 
     public void updateInputs(IntakeIOInputs inputs); 

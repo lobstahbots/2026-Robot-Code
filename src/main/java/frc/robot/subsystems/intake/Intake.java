@@ -9,15 +9,19 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
   
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
   private final IntakeIO io;
 
+  private boolean isDeployed;
+
   /** Creates a new Intake. */
   public Intake(IntakeIO io) {
     this.io = io;
+    this.isDeployed = false;
   }
 
   public void stopArmMotor() {
@@ -74,8 +78,21 @@ public class Intake extends SubsystemBase {
     Logger.processInputs("Intake", inputs);
   }
 
-  public Command toggleDeployIntakeCommand (double speed, boolean isIn) {
-    
+  public Command toggleIntakeDeployCommand () {
+    // return Commands.run(
+    //     () -> this.isDeployed ? this.setArmSpeed(IntakeConstants.ARM_DEPLOY_SPEED) : this.setArmSpeed(-IntakeConstants.ARM_DEPLOY_SPEED)
+    //     , this)
+    //     .until(() -> this.getArmCurrent() > IntakeConstants.ARM_DEPLOY_CURRENT_THRESHHOLD);
+
+    return Commands.run(() -> {
+        if(isDeployed) {
+            this.setArmSpeed(IntakeConstants.ARM_DEPLOY_SPEED);
+        } else {
+            this.setArmSpeed(-IntakeConstants.ARM_DEPLOY_SPEED);
+        }
+        isDeployed = !isDeployed;
+    }, this)
+        .until(() -> this.getArmCurrent() > IntakeConstants.ARM_DEPLOY_CURRENT_THRESHOLD);
   }
 
   public Command spinIntakeCommand (double speed) {
