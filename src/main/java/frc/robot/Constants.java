@@ -290,6 +290,12 @@ public final class Constants {
         public static final double SIM_BUFFER_LENGTH = 1.5;
     }
 
+    public static class IntakeConstants {
+
+        public static final int CURRENT_LIMIT = 40;
+        
+    }
+
     public static class TempConstants {
         public static final int OVERHEAT_TEMP = 80;
         public static final int SAFE_TEMP = 80;
