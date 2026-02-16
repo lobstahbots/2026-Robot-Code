@@ -428,6 +428,14 @@ public final class Constants {
         public static final double SIM_BUFFER_LENGTH = 1.5;
     }
 
+    public static class IntakeConstants {
+
+        public static final int CURRENT_LIMIT = 40;
+        public static final double ARM_DEPLOY_SPEED = 1.0;
+        public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
+        
+    }
+
     public static class TempConstants {
         public static final int OVERHEAT_TEMP = 80;
         public static final int SAFE_TEMP = 80;
