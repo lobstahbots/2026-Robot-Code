@@ -79,11 +79,6 @@ public class Intake extends SubsystemBase {
   }
 
   public Command toggleIntakeDeployCommand () {
-    // return Commands.run(
-    //     () -> this.isDeployed ? this.setArmSpeed(IntakeConstants.ARM_DEPLOY_SPEED) : this.setArmSpeed(-IntakeConstants.ARM_DEPLOY_SPEED)
-    //     , this)
-    //     .until(() -> this.getArmCurrent() > IntakeConstants.ARM_DEPLOY_CURRENT_THRESHHOLD);
-
     return Commands.run(() -> {
         if(isDeployed) {
             this.setArmSpeed(IntakeConstants.ARM_DEPLOY_SPEED);
