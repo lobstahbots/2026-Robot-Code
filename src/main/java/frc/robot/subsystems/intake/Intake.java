@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
   }
 
   public void setRollerIdleMode(boolean isBrake) {
-
+    io.setRollerIdleMode(isBrake);
   }
 
   public double getArmVelocity() {
@@ -79,14 +79,14 @@ public class Intake extends SubsystemBase {
   }
 
   public Command spinIntakeCommand (double speed) {
-
+    return Commands.run(() -> this.setRollerSpeed(speed), this);
   }
 
   public Command stopIntakeRollerCommand () {
-    return Commands.run(this::stopRollerMotor(), this);
+    return Commands.run(() -> this.stopRollerMotor(), this);
   }
 
   public Command stopIntakeArmCommand () {
-
+    return Commands.run(() -> this.stopRollerMotor(), this);
   }
 }
