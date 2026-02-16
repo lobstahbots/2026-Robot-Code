@@ -4,62 +4,89 @@
 
 package frc.robot.subsystems.intake;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
+  
+  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+  private final IntakeIO io;
+
   /** Creates a new Intake. */
-  private final SparkMax armMotor;
-  private final SparkMax rollerMotor;
-
-  private final RelativeEncoder armEncoder;
-  private final RelativeEncoder rollerEncoder;
-
-
-  public Intake(int armMotorID, int rollerMotorID) {
-    this.armMotor = new SparkMax(armMotorID, MotorType.kBrushless);
-    this.rollerMotor = new SparkMax(rollerMotorID, MotorType.kBrushless);
-
-    SparkMaxConfig config = new SparkMaxConfig();
-
-    config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT);
-    config.idleMode(IdleMode.kBrake);
-    config.inverted(false);
-    config.encoder.velocityConversionFactor(1.0);
-    
-    armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-    armEncoder = armMotor.getEncoder();
-    rollerEncoder = rollerMotor.getEncoder();
+  public Intake(IntakeIO io) {
+    this.io = io;
   }
 
   public void stopArmMotor() {
-    armMotor.stopMotor();
+    io.stopArmMotor();
   }
 
   public void stopRollerMotor() {
-    rollerMotor.stopMotor();
+    io.stopRollerMotor();
+  }
+
+  public void setArmVoltage(double volts) {
+    io.setArmVoltage(volts);
+  }
+
+  public void setRollerVoltage(double volts) {
+    io.setRollerVoltage(volts);
   }
 
   public void setArmSpeed(double speed) {
-    armMotor.set(speed);
+    io.setArmSpeed(speed);
   }
 
   public void setRollerSpeed(double speed) {
-    rollerMotor.set(speed);
+    io.setRollerSpeed(speed);
+  }
+
+  public void setArmIdleMode(boolean isBrake) {
+    io.setArmIdleMode(isBrake);
+  }
+
+  public void setRollerIdleMode(boolean isBrake) {
+
+  }
+
+  public double getArmVelocity() {
+    return inputs.ArmVelocity;
+  }
+
+  public double getRollerVelocity() {
+    return inputs.rollerVelocity;
+  }
+
+  public double getArmCurrent() {
+    return inputs.armCurrentAmps;
+  }
+
+  public double getRollerCurrent() {
+    return inputs.rollerCurrentAmps;
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    io.updateInputs(inputs);
+    Logger.processInputs("Intake", inputs);
+  }
+
+  public Command toggleDeployIntakeCommand (double speed, boolean isIn) {
+    
+  }
+
+  public Command spinIntakeCommand (double speed) {
+
+  }
+
+  public Command stopIntakeRollerCommand () {
+    return Commands.run(this::stopRollerMotor(), this);
+  }
+
+  public Command stopIntakeArmCommand () {
+
   }
 }
