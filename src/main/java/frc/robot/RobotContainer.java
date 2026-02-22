@@ -163,7 +163,7 @@ public class RobotContainer {
         driveBase.setDefaultCommand(
                 driveBase.joystickDrive(() -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
-                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL)));
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL), true));
     }
 
     /**
@@ -209,6 +209,8 @@ public class RobotContainer {
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
         Logger.recordOutput("FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
         CameraIOSim.addSimPose(new Pose3d(driveSimulation.getSimulatedDriveTrainPose()));
+        if (Constants.getRobot() == RobotType.SIM_BASIC)
+            driveBase.resetPose(driveSimulation.getSimulatedDriveTrainPose());
     }
 
     public void setIdleMode(boolean isBrakeMode) {

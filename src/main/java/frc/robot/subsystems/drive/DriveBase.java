@@ -42,6 +42,7 @@ import frc.robot.Constants.IOConstants;
 import frc.robot.subsystems.vision.Camera;
 import frc.robot.subsystems.vision.Camera.Pose;
 import frc.robot.util.led.LEDs;
+import frc.robot.util.math.DriveAssist;
 import frc.robot.util.math.LobstahMath;
 import frc.robot.util.sysId.CharacterizableSubsystem;
 import frc.robot.util.trajectory.AlliancePoseMirror;
@@ -392,10 +393,11 @@ public class DriveBase extends CharacterizableSubsystem {
      * @param strafeYSupplier  Supplier for strafe in Y direction, e.g. from a
      *                         joystick.
      * @param rotationSupplier Supplier for rotation, e.g. from a joystick.
+     * @param assist           Whether or not to apply drive assist.
      * @return constructed command
      */
     public Command joystickDrive(DoubleSupplier strafeXSupplier, DoubleSupplier strafeYSupplier,
-            DoubleSupplier rotationSupplier) {
+            DoubleSupplier rotationSupplier, boolean assist) {
         return run(() -> {
             double linearMagnitude = MathUtil.applyDeadband(
                     Math.hypot(strafeXSupplier.getAsDouble(), strafeYSupplier.getAsDouble()),
@@ -419,8 +421,29 @@ public class DriveBase extends CharacterizableSubsystem {
             ChassisSpeeds chassisSpeeds = new ChassisSpeeds(linearVelocity.getX() * DriveConstants.MAX_DRIVE_SPEED,
                     linearVelocity.getY() * DriveConstants.MAX_DRIVE_SPEED, omega * DriveConstants.MAX_ANGULAR_SPEED);
 
+            if (assist) {
+                ChassisSpeeds trenchAssist = DriveAssist.trenchAssist(chassisSpeeds, getPose());
+                Logger.recordOutput("Trench Asist", trenchAssist);
+                chassisSpeeds = chassisSpeeds.plus(trenchAssist);
+            }
+
             driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(chassisSpeeds, getPose().getRotation()));
         }).finallyDo(this::stopMotors);
+    }
+
+    /**
+     * Create a new command to drive field-relative without drive assist.
+     * 
+     * @param strafeXSupplier  Supplier for strafe in X direction, e.g. from a
+     *                         joystick.
+     * @param strafeYSupplier  Supplier for strafe in Y direction, e.g. from a
+     *                         joystick.
+     * @param rotationSupplier Supplier for rotation, e.g. from a joystick.
+     * @return constructed command
+     */
+    public Command joystickDrive(DoubleSupplier strafeXSupplier, DoubleSupplier strafeYSupplier,
+            DoubleSupplier rotationSupplier) {
+        return joystickDrive(strafeXSupplier, strafeYSupplier, rotationSupplier, false);
     }
 
     /**
