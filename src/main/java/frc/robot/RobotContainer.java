@@ -21,6 +21,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.AutoFactory.CharacterizationRoutine;
 import frc.robot.Constants.Comp;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.RobotMode;
+import frc.robot.Constants.RobotType;
 import frc.robot.Constants.DriveConstants.BackLeftModuleConstants;
 import frc.robot.Constants.DriveConstants.BackRightModuleConstants;
 import frc.robot.Constants.DriveConstants.FrontLeftModuleConstants;
@@ -37,6 +40,10 @@ import frc.robot.subsystems.drive.SwerveModuleIO;
 import frc.robot.subsystems.drive.SwerveModuleIOSim;
 import frc.robot.subsystems.drive.SwerveModuleIOSparkMax;
 import frc.robot.subsystems.drive.SwerveModuleIOTalonFX;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOSimBasic;
+import frc.robot.subsystems.intake.IntakeIOSparkMax;
 import frc.robot.subsystems.vision.Camera;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOSim;
@@ -48,6 +55,7 @@ public class RobotContainer {
     private final LEDs leds;
 
     private final DriveBase driveBase;
+    private final Intake intake;
 
     private final AutonSelector<Object> autoChooser = new AutonSelector<>("Auto Chooser", "Do Nothing", List.of(),
             () -> Commands.none());
@@ -79,6 +87,7 @@ public class RobotContainer {
             List<Camera> cameras = VisionConstants.WAFFLE_CAMERA_TRANSFORMS.keySet().stream()
                     .map(name -> new Camera(new CameraIOPhoton(name))).toList();
             driveBase = new DriveBase(new GyroIONavX(), cameras, frontLeft, frontRight, backLeft, backRight, false);
+            intake = new Intake(new IntakeIO() {});
         } else if (Constants.getRobot() == Constants.RobotType.COMP
                 && Constants.getMode() == Constants.RobotMode.REAL) {
             SwerveModuleIOTalonFX frontLeft = new SwerveModuleIOTalonFX(FrontLeftModuleConstants.moduleID,
@@ -98,7 +107,8 @@ public class RobotContainer {
                     .map(name -> new Camera(new CameraIOPhoton(name))).toList();
             driveBase = new DriveBase(new GyroIOCanandgyro(Comp.RobotConstants.GYRO_ID), cameras, frontLeft, frontRight,
                     backLeft, backRight, false);
-        } else if (!SimConstants.REPLAY) {
+            intake = new Intake(new IntakeIOSparkMax(IntakeConstants.ARM_ID, IntakeConstants.ROLLER_ID));
+        } else if (!(Constants.getMode() == RobotMode.REPLAY)) {
             driveSimulation = new SwerveDriveSimulation(DriveConstants.MAPLE_SIM_CONFIG,
                     new Pose2d(3, 3, new Rotation2d()));
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
@@ -118,9 +128,16 @@ public class RobotContainer {
             }
             driveBase = new DriveBase(new GyroIOSim(driveSimulation.getGyroSimulation()), cameras, frontLeft,
                     frontRight, backLeft, backRight, false);
+
+            if (Constants.getRobot() == RobotType.SIM_BASIC) {
+                intake = new Intake(new IntakeIOSimBasic());
+            } else {
+                intake = new Intake(new IntakeIO() {});
+            }
         } else {
             driveBase = new DriveBase(new GyroIO() {}, List.of(), new SwerveModuleIO() {}, new SwerveModuleIO() {},
                     new SwerveModuleIO() {}, new SwerveModuleIO() {}, false);
+            intake = new Intake(new IntakeIO() {});
         }
 
         this.autoFactory = new AutoFactory(driveBase, autoChooser::getResponses, (Pose2d newPose) -> {

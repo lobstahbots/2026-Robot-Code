@@ -49,7 +49,7 @@ import frc.robot.subsystems.drive.SwerveKinematicLimits;
  */
 public final class Constants {
     public static enum RobotType {
-        WAFFLE, COMP, SIM
+        WAFFLE, COMP, SIM_BASIC, SIM_ADVANCED
     }
 
     private static final RobotType robotType = RobotType.COMP;
@@ -57,7 +57,7 @@ public final class Constants {
     // DO NOT EDIT
     private static final RobotType trueRobotType = RuntimeType
             .getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? robotType
-                    : robotType == RobotType.SIM ? RobotType.COMP : robotType;
+                    : robotType == RobotType.SIM_BASIC || robotType == RobotType.SIM_ADVANCED ? RobotType.COMP : robotType;
 
     public static final RobotType getRobot() {
         return trueRobotType;
@@ -67,7 +67,7 @@ public final class Constants {
         REAL, REPLAY, SIM
     }
 
-    private static final RobotMode robotMode = getRobot() == RobotType.SIM ? RobotMode.SIM
+    private static final RobotMode robotMode = getRobot() == RobotType.SIM_BASIC || getRobot() == RobotType.SIM_ADVANCED ? RobotMode.SIM
             : RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? RobotMode.REPLAY
                     : RobotMode.REAL;
 
@@ -384,7 +384,6 @@ public final class Constants {
 
     public static class SimConstants {
         public static final double LOOP_TIME = 0.02;
-        public static final boolean REPLAY = false;
         public static final String REPLAY_LOG_PATH = "akit_25-05-19_16-17-20.wpilog";
 
         public static final int[] SWERVE_CHANNELS = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -449,6 +448,9 @@ public final class Constants {
         public static final Rotation2d DEPLOYED = Rotation2d.kZero;
         public static final Rotation2d STOWED = Rotation2d.kCW_90deg;
         public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(2);
+
+        public static final int ARM_ID = 20;
+        public static final int ROLLER_ID = 21;
     }
 
     public static class TempConstants {
