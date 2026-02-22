@@ -2,8 +2,10 @@ package frc.robot.subsystems.intake;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 public interface IntakeIO {
-    
+
     @AutoLog
     public static class IntakeIOInputs {
 
@@ -28,6 +30,11 @@ public interface IntakeIO {
         public double armTempCelcius = 0.0;
 
         /**
+         * Position of intake arm in rotations
+         */
+        public Rotation2d armPosition = Rotation2d.kZero;
+
+        /**
          * Velocity of roller motor in rotations/second
          */
         public double rollerVelocity = 0.0;
@@ -50,23 +57,25 @@ public interface IntakeIO {
         public boolean isDeployed = false;
     }
 
-    public void updateInputs(IntakeIOInputs inputs); 
+    public void updateInputs(IntakeIOInputs inputs);
 
-    public void stopArmMotor ();
+    public void stopArmMotor();
 
-    public void stopRollerMotor ();
+    public void stopRollerMotor();
 
-    public void setArmVoltage (double volts);
+    public void setArmVoltage(double volts);
 
     public void setRollerVoltage(double volts);
 
-    public void setArmSpeed(double speed);
+    public void setArmPosition(Rotation2d position);
 
     public void setRollerSpeed(double speed);
 
     public void setArmIdleMode(boolean isBrake);
 
     public void setRollerIdleMode(boolean isBrake);
+
+    public void resetEncoder(Rotation2d position);
 
     public default void periodic() {};
 

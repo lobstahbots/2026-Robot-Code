@@ -6,99 +6,67 @@ package frc.robot.subsystems.intake;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
-  
-  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
-  private final IntakeIO io;
 
-  private boolean isDeployed;
+    private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+    private final IntakeIO io;
 
-  /** Creates a new Intake. */
-  public Intake(IntakeIO io) {
-    this.io = io;
-    this.isDeployed = false;
-  }
+    private boolean hasZeroed = false;
 
-  public void stopArmMotor() {
-    io.stopArmMotor();
-  }
+    /** Creates a new Intake. */
+    public Intake(IntakeIO io) {
+        this.io = io;
+    }
 
-  public void stopRollerMotor() {
-    io.stopRollerMotor();
-  }
+    public void setArmIdleMode(boolean isBrake) {
+        io.setArmIdleMode(isBrake);
+    }
 
-  public void setArmVoltage(double volts) {
-    io.setArmVoltage(volts);
-  }
+    public void setRollerIdleMode(boolean isBrake) {
+        io.setRollerIdleMode(isBrake);
+    }
 
-  public void setRollerVoltage(double volts) {
-    io.setRollerVoltage(volts);
-  }
+    public double getRollerVelocity() {
+        return inputs.rollerVelocity;
+    }
 
-  public void setArmSpeed(double speed) {
-    io.setArmSpeed(speed);
-  }
+    public Rotation2d getPosition() {
+        return inputs.armPosition;
+    }
 
-  public void setRollerSpeed(double speed) {
-    io.setRollerSpeed(speed);
-  }
+    @Override
+    public void periodic() {
+        io.updateInputs(inputs);
+        Logger.processInputs("Intake", inputs);
+    }
 
-  public void setArmIdleMode(boolean isBrake) {
-    io.setArmIdleMode(isBrake);
-  }
+    public Command spin() {
+        return runEnd(() -> io.setRollerSpeed(1), io::stopRollerMotor);
+    }
 
-  public void setRollerIdleMode(boolean isBrake) {
-    io.setRollerIdleMode(isBrake);
-  }
+    private Command setPosition(Rotation2d position) {
+        return startEnd(() -> io.setArmPosition(position), io::stopArmMotor).until(() -> Math
+                .abs(position.minus(getPosition()).getRotations()) <= IntakeConstants.MAX_ERROR.getRotations());
+    }
 
-  public double getArmVelocity() {
-    return inputs.armVelocity;
-  }
+    public Command deploy() {
+        return setPosition(IntakeConstants.DEPLOYED);
+    }
 
-  public double getRollerVelocity() {
-    return inputs.rollerVelocity;
-  }
+    public Command stow() {
+        return setPosition(IntakeConstants.STOWED);
+    }
 
-  public double getArmCurrent() {
-    return inputs.armCurrentAmps;
-  }
-
-  public double getRollerCurrent() {
-    return inputs.rollerCurrentAmps;
-  }
-
-  @Override
-  public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
-  }
-
-  public Command toggleIntakeDeployCommand () {
-    return Commands.run(() -> {
-        if(isDeployed) {
-            this.setArmSpeed(IntakeConstants.ARM_DEPLOY_SPEED);
-        } else {
-            this.setArmSpeed(-IntakeConstants.ARM_DEPLOY_SPEED);
-        }
-        isDeployed = !isDeployed;
-    }, this)
-        .until(() -> this.getArmCurrent() > IntakeConstants.ARM_DEPLOY_CURRENT_THRESHOLD);
-  }
-
-  public Command spinIntakeCommand (double speed) {
-    return Commands.run(() -> this.setRollerSpeed(speed), this);
-  }
-
-  public Command stopIntakeRollerCommand () {
-    return Commands.run(() -> this.stopRollerMotor(), this);
-  }
-
-  public Command stopIntakeArmCommand () {
-    return Commands.run(() -> this.stopRollerMotor(), this);
-  }
+    public Command home() {
+        return startEnd(() -> io.setArmVoltage(-6), () -> {
+            io.stopArmMotor();
+            hasZeroed = true;
+            io.resetEncoder(IntakeConstants.STOWED);
+        }).until(() -> inputs.armCurrentAmps >= IntakeConstants.ARM_DEPLOY_CURRENT_THRESHOLD);
+    }
 }

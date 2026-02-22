@@ -19,6 +19,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.hal.HALUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -248,8 +249,8 @@ public final class Constants {
 
     public static class Comp {
         public static class RobotConstants {
-            public static final double WHEELBASE = Units.inchesToMeters(30);
-            public static final double TRACK_WIDTH = Units.inchesToMeters(24);
+            public static final double WHEELBASE = Units.inchesToMeters(24);
+            public static final double TRACK_WIDTH = Units.inchesToMeters(30);
             public static final double EDGE_TO_MODULE_CENTER = Units.inchesToMeters(1.75);
             // Distance from robot center to module center
             public static final double RADIUS = Math.sqrt(Math.pow(WHEELBASE / 2 - EDGE_TO_MODULE_CENTER, 2)
@@ -429,11 +430,25 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-
         public static final int CURRENT_LIMIT = 40;
         public static final double ARM_DEPLOY_SPEED = 1.0;
         public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
-        
+        public static final double GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0);
+
+        public static final double kP = 0.1;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
+        public static final double kS = 0.0;
+        public static final double kV = 0.0;
+        public static final double kA = 0.0;
+        public static final double kG = 0.0;
+        public static final double CRUISE_VELOCITY = 10.0;
+        public static final double MAX_ACCELERATION = 30.0;
+        public static final double ALLOWED_PROFILE_ERROR = 0.4; // rotations
+
+        public static final Rotation2d DEPLOYED = Rotation2d.kZero;
+        public static final Rotation2d STOWED = Rotation2d.kCW_90deg;
+        public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(2);
     }
 
     public static class TempConstants {
