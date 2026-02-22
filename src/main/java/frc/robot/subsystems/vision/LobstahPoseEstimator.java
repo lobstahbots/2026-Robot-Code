@@ -81,7 +81,7 @@ public class LobstahPoseEstimator {
      *                      class.
      * @param strategy      The strategy it should use to determine the best pose.
      * @param robotToCamera {@link Transform3d} from the center of the robot to the
-     *                      camera mount position (ie, robot ➔ camera) in the
+     *                      camera mount position (ie, robot -> camera) in the
      *                      <a href=
      *                      "https://docs.wpilib.org/en/stable/docs/software/advanced-controls/geometry/coordinate-systems.html#robot-coordinate-system">Robot
      *                      Coordinate System</a>.

@@ -12,7 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.Constants.FieldConstants.Poses;
+import frc.robot.FieldConstants;
 import frc.robot.util.math.LobstahMath;
 
 /**
@@ -28,7 +28,7 @@ public class AlliancePoseMirror {
      */
     public static Translation2d mirrorTranslation2d(Translation2d translation) {
         if (isRedAlliance()) {
-            return Poses.FIELD_CENTER.getTranslation().plus(Poses.FIELD_CENTER.getTranslation().minus(translation));
+            return FieldConstants.FIELD_CENTER.plus(FieldConstants.FIELD_CENTER.minus(translation));
         } else {
             return translation;
         }

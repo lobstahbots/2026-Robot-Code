@@ -1,0 +1,52 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
+package frc.robot.subsystems.drive;
+
+import com.reduxrobotics.sensors.canandgyro.Canandgyro;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
+/** Add your docs here. */
+public class GyroIOCanandgyro implements GyroIO {
+    private final Canandgyro gyro;
+    private double offset = 0;
+
+    public GyroIOCanandgyro(int id) {
+        gyro = new Canandgyro(id);
+    }
+
+    public Rotation2d getYaw() {
+        return Rotation2d.fromRotations(gyro.getYaw() - offset)
+                .plus(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red
+                        ? Rotation2d.kZero
+                        : Rotation2d.k180deg);
+    }
+
+    public Rotation2d getPitch() {
+        return Rotation2d.fromRotations(gyro.getPitch());
+    }
+
+    public Rotation2d getRoll() {
+        return Rotation2d.fromRotations(gyro.getRoll());
+    }
+
+    public void zeroGyro() {
+        offset = gyro.getYaw();
+    }
+
+    public boolean isCalibrating() {
+        return gyro.isCalibrating();
+    }
+
+    public void updateInputs(GyroIOInputs inputs) {
+        inputs.connected = gyro.isConnected();
+        inputs.rollPosition = getRoll();
+        inputs.pitchPosition = getPitch();
+        inputs.yawPosition = getYaw();
+        inputs.isCalibrating = gyro.isCalibrating();
+    }
+}

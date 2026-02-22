@@ -16,11 +16,9 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathConstraints;
 
+import edu.wpi.first.hal.HALUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Quaternion;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -34,9 +32,9 @@ import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Pounds;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.wpilibj.RuntimeType;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.subsystems.drive.SwerveKinematicLimits;
-import frc.robot.util.choreo.ChoreoVariables;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -49,6 +47,33 @@ import frc.robot.util.choreo.ChoreoVariables;
  * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
+    public static enum RobotType {
+        WAFFLE, COMP, SIM
+    }
+
+    private static final RobotType robotType = RobotType.COMP;
+
+    // DO NOT EDIT
+    private static final RobotType trueRobotType = RuntimeType
+            .getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? robotType
+                    : robotType == RobotType.SIM ? RobotType.COMP : robotType;
+
+    public static final RobotType getRobot() {
+        return trueRobotType;
+    }
+
+    public static enum RobotMode {
+        REAL, REPLAY, SIM
+    }
+
+    private static final RobotMode robotMode = getRobot() == RobotType.SIM ? RobotMode.SIM
+            : RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? RobotMode.REPLAY
+                    : RobotMode.REAL;
+
+    public static final RobotMode getMode() {
+        return robotMode;
+    }
+
     public static class PathConstants {
         public static final PathConstraints CONSTRAINTS = new PathConstraints(4, 4, Units.degreesToRadians(540),
                 Units.degreesToRadians(720));
@@ -87,158 +112,273 @@ public final class Constants {
 
             public static final boolean SQUARE_INPUTS = true;
         }
-        //NOTE: useless probably
-        // public static class DriverIOConstants {
-        //     public static final int DRIVER_CONTROLLER_PORT = 0;
-        //     public static final int STRAFE_X_AXIS = 1; //Fix this to be named the actual axis
-        //     public static final int STRAFE_Y_AXIS = 0; 
-        //     public static final int ROTATION_AXIS = 4;
-        //     public static final int SCORE_BUTTON = 6; //Should be LT
-        //     public static final int LEFT_BACK_BUTTON = 0;
-        //     public static final int RIGHT_BACK_BUTTON = 0; 
-        //     public static final boolean SQUARE_INPUTS = false;
-        // }
-
-        // public static class OperatorIOConstants {
-        //     public static final int OPERATOR_CONTROLLER_PORT = 1;
-        //     public static final int MANUAL_ARM_AXIS = 1;
-        //     public static final int L2_BUTTON = 2; //Should be Y
-        //     public static final int L3_BUTTON = 4;
-        //     public static final int L4_BUTTON = 3;
-        //     public static final int SPIN_INTAKE_BUTTON_ID = 5; //Should be LT
-        //     public static final int SCORE_BUTTON = 6;
-        //     public static final int STOW_BUTTON_ID = 0; //Should be RT
-        //     public static final int MANUAL_ELEVATOR_AXIS = 5;
-        // }
     }
 
-    public static class RobotConstants {
-        public static final double WHEELBASE = ChoreoVariables.get("ROBOT_SIZE");
-        public static final double TRACK_WIDTH = ChoreoVariables.get("ROBOT_SIZE");
-        public static final double EDGE_TO_MODULE_CENTER = ChoreoVariables.get("EDGE_TO_MODULE_CENTER");
-        // Distance from robot center to module center
-        public static final double RADIUS = Math.sqrt(2 * Math.pow(WHEELBASE / 2 - EDGE_TO_MODULE_CENTER, 2));
-        public static final double WHEEL_DIAMETER = ChoreoVariables.get("WHEEL_DIAMETER");
-        public static final double DRIVE_GEAR_RATIO = ChoreoVariables.get("DRIVE_GEAR_RATIO");
-        public static final double ANGLE_GEAR_RATIO = 9424 / 203;
-        public static final double MAX_DRIVE_SPEED = 5.23; // from https://www.reca.lc/drive
-        public static final Mass WEIGHT = Pounds.of(150);
-        public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
+    public static class Waffle {
+        public static class RobotConstants {
+            public static final double WHEELBASE = Units.inchesToMeters(29);
+            public static final double TRACK_WIDTH = WHEELBASE;
+            public static final double EDGE_TO_MODULE_CENTER = Units.inchesToMeters(1.75);
+            public static final double RADIUS = Math.sqrt(Math.pow(WHEELBASE / 2 - EDGE_TO_MODULE_CENTER, 2)
+                    + Math.pow(TRACK_WIDTH / 2 - EDGE_TO_MODULE_CENTER, 2));
+            public static final double WHEEL_DIAMETER = Units.inchesToMeters(3);
+            public static final double DRIVE_GEAR_RATIO = 5.5;
+            public static final double ANGLE_GEAR_RATIO = 9424 / 203;
+            public static final double MAX_DRIVE_SPEED = 5.23; // from https://www.reca.lc/drive
+            public static final Mass WEIGHT = Pounds.of(150);
+            public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
+        }
+
+        public static class DriveConstants {
+            public static final double MAX_ACCELERATION = 45;
+            public static final double MAX_DRIVE_SPEED = 100;
+            public static final double MAX_ANGULAR_SPEED = 50;
+            public static final double SLOWDOWN_PERCENT = 0.5;
+            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 30;
+            public static final int ANGLE_MOTOR_CURRENT_LIMIT = 20;
+            public static final Translation2d[] MODULE_LOCATIONS = new Translation2d[] {
+                    new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
+                            RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
+                            -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
+                            RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
+                            -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER), };
+            public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(MODULE_LOCATIONS);
+            public static final SwerveKinematicLimits MODULE_LIMITS = new SwerveKinematicLimits(MAX_DRIVE_SPEED,
+                    MAX_ACCELERATION, MAX_ANGULAR_SPEED);
+
+            public static boolean FIELD_CENTRIC = true;
+            public static final boolean IS_OPEN_LOOP = false;
+
+            public static final double PATH_MAX_ACCEL = 3;
+            public static final double PATH_MAX_VELOCITY = 3;
+
+            public static final double TURN_DEADBAND = Units.degreesToRadians(5);
+
+            public static final double WHEEL_COF = 1.5;
+
+            public static final RobotConfig ROBOT_CONFIG = new RobotConfig(RobotConstants.WEIGHT, // Robot mass
+                    RobotConstants.MOI, // Robot moment of inertia
+                    new ModuleConfig(RobotConstants.WHEEL_DIAMETER / 2, // wheel diameter
+                            RobotConstants.MAX_DRIVE_SPEED, // max drive velocity (m/s)
+                            WHEEL_COF, // cof between wheels and ground
+                            DCMotor.getNEO(1).withReduction(RobotConstants.DRIVE_GEAR_RATIO), // DCMotor representing motor, including reduction
+                            DRIVE_MOTOR_CURRENT_LIMIT, // current limit for drive motors
+                            1 // number of drive motors per module
+                    ), MODULE_LOCATIONS);
+            public static final PIDConstants ROTATION_PID_CONSTANTS = new PIDConstants(10, 0.0, 0);
+            public static final PIDConstants TRANSLATION_PID_CONSTANTS = new PIDConstants(7, 0.01, 0.15);
+
+            public static final double AUTO_ALIGN_TRANSLATION_kP = 5;
+            public static final double AUTO_ALIGN_TRANSLATION_kI = 0.2;
+            public static final double AUTO_ALIGN_TRANSLATION_kD = 0.25;
+
+            public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG = DriveTrainSimulationConfig.Default()
+                    .withCustomModuleTranslations(MODULE_LOCATIONS).withGyro(COTS.ofNav2X())
+                    .withRobotMass(Pounds.of(125))
+                    .withSwerveModule(COTS.ofMAXSwerve(DCMotor.getNEO(1), DCMotor.getNeo550(1), WHEEL_COF, 1));
+
+            public static class FrontLeftModuleConstants {
+                public static final int moduleID = 0;
+                public static final int driveID = 14;
+                public static final int angleID = 15;
+                public static final double angleOffset = -90;
+                public static final boolean inverted = false;
+            }
+
+            public static class BackRightModuleConstants {
+                public static final int moduleID = 3;
+                public static final int driveID = 11;
+                public static final int angleID = 10;
+                public static final double angleOffset = 90;
+                public static final boolean inverted = false;
+            }
+
+            public static class FrontRightModuleConstants {
+                public static final int moduleID = 1;
+                public static final int driveID = 17;
+                public static final int angleID = 16;
+                public static final double angleOffset = 0;
+                public static final boolean inverted = false;
+            }
+
+            public static class BackLeftModuleConstants {
+                public static final int moduleID = 2;
+                public static final int driveID = 13;
+                public static final int angleID = 12;
+                public static final double angleOffset = 180;
+                public static final boolean inverted = false;
+            }
+        }
+
+        public static class SwerveConstants {
+            public static final boolean invertGyro = true;
+
+            public static final double KS = 0.1;
+            public static final double KA = 0.1;
+            public static final double KV = 0.1;
+
+            public static final double DRIVING_ENCODER_POSITION_CONVERSION_FACTOR = 1 / RobotConstants.DRIVE_GEAR_RATIO;
+            public static final double DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR = DRIVING_ENCODER_POSITION_CONVERSION_FACTOR
+                    / 60.0;
+            public static final double TURNING_ENCODER_POSITION_CONVERSION_FACTOR = (2 * Math.PI);
+            public static final double TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR = TURNING_ENCODER_POSITION_CONVERSION_FACTOR
+                    / 60.0;
+
+            public static final double TURN_PID_MIN_INPUT = -Math.PI;
+            public static final double TURN_PID_MAX_INPUT = Math.PI;
+
+            public static final double DRIVE_PID_MIN_OUTPUT = -1;
+            public static final double DRIVE_PID_MAX_OUTPUT = 1;
+            public static final double DRIVE_PID_P = 0.045;
+            public static final double DRIVE_PID_I = 0.00;
+            public static final double DRIVE_PID_D = 0.00;
+            public static final double DRIVE_PID_FF = 0;
+
+            public static final double TURN_PID_MIN_OUTPUT = -2 * Math.PI;
+            public static final double TURN_PID_MAX_OUTPUT = 2 * Math.PI;
+            public static final double TURN_PID_P = 5;
+            public static final double TURN_PID_I = 0;
+            public static final double TURN_PID_D = 0.15;
+            public static final double TURN_PID_FF = 0;
+        }
     }
 
-    public static class DriveConstants {
-        public static final double MAX_ACCELERATION = 45;
-        public static final double MAX_DRIVE_SPEED = 100;
-        public static final double MAX_ANGULAR_SPEED = 50;
-        public static final double SLOWDOWN_PERCENT = 0.5;
-        public static final int DRIVE_MOTOR_CURRENT_LIMIT = 30;
-        public static final int ANGLE_MOTOR_CURRENT_LIMIT = 20;
-        public static final Translation2d[] MODULE_LOCATIONS = new Translation2d[] {
-                new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
-                        RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
-                new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
-                        -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER),
-                new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
-                        RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
-                new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
-                        -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER), };
-        public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(MODULE_LOCATIONS);
-        public static final SwerveKinematicLimits MODULE_LIMITS = new SwerveKinematicLimits(MAX_DRIVE_SPEED,
-                MAX_ACCELERATION, MAX_ANGULAR_SPEED);
+    public static class Comp {
+        public static class RobotConstants {
+            public static final double WHEELBASE = Units.inchesToMeters(30);
+            public static final double TRACK_WIDTH = Units.inchesToMeters(24);
+            public static final double EDGE_TO_MODULE_CENTER = Units.inchesToMeters(1.75);
+            // Distance from robot center to module center
+            public static final double RADIUS = Math.sqrt(Math.pow(WHEELBASE / 2 - EDGE_TO_MODULE_CENTER, 2)
+                    + Math.pow(TRACK_WIDTH / 2 - EDGE_TO_MODULE_CENTER, 2));
+            public static final double WHEEL_DIAMETER = Units.inchesToMeters(3);
+            public static final double DRIVE_GEAR_RATIO = 5.08;
+            public static final double ANGLE_GEAR_RATIO = 9424 / 203;
+            public static final double MAX_DRIVE_SPEED = 5.23; // from https://www.reca.lc/drive
+            public static final Mass WEIGHT = Pounds.of(150);
+            public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
 
-        public static boolean FIELD_CENTRIC = true;
-        public static final boolean IS_OPEN_LOOP = false;
-
-        public static final double PATH_MAX_ACCEL = 3;
-        public static final double PATH_MAX_VELOCITY = 3;
-
-        public static final double TURN_DEADBAND = Units.degreesToRadians(5);
-
-        public static final double WHEEL_COF = 1.5;
-
-        public static final RobotConfig ROBOT_CONFIG = new RobotConfig(RobotConstants.WEIGHT, // Robot mass
-                RobotConstants.MOI, // Robot moment of inertia
-                new ModuleConfig(RobotConstants.WHEEL_DIAMETER / 2, // wheel diameter
-                        RobotConstants.MAX_DRIVE_SPEED, // max drive velocity (m/s)
-                        WHEEL_COF, // cof between wheels and ground
-                        DCMotor.getNEO(1).withReduction(RobotConstants.DRIVE_GEAR_RATIO), // DCMotor representing motor, including reduction
-                        DRIVE_MOTOR_CURRENT_LIMIT, // current limit for drive motors
-                        1 // number of drive motors per module
-                ), MODULE_LOCATIONS);
-        public static final PIDConstants ROTATION_PID_CONSTANTS = new PIDConstants(10, 0.0, 0);
-        public static final PIDConstants TRANSLATION_PID_CONSTANTS = new PIDConstants(7, 0.01, 0.15);
-
-        public static final double AUTO_ALIGN_TRANSLATION_kP = 5;
-        public static final double AUTO_ALIGN_TRANSLATION_kI = 0.2;
-        public static final double AUTO_ALIGN_TRANSLATION_kD = 0.25;
-
-        public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG = DriveTrainSimulationConfig.Default()
-                .withCustomModuleTranslations(MODULE_LOCATIONS).withGyro(COTS.ofNav2X()).withRobotMass(Pounds.of(125))
-                .withSwerveModule(COTS.ofMAXSwerve(DCMotor.getNEO(1), DCMotor.getNeo550(1), WHEEL_COF, 1));
-
-        public static class FrontLeftModuleConstants {
-            public static final int moduleID = 0;
-            public static final int driveID = 14;
-            public static final int angleID = 15;
-            public static final double angleOffset = -90;
-            public static final boolean inverted = false;
+            public static final int GYRO_ID = 3;
         }
 
-        public static class BackRightModuleConstants {
-            public static final int moduleID = 3;
-            public static final int driveID = 11;
-            public static final int angleID = 10;
-            public static final double angleOffset = 90;
-            public static final boolean inverted = false;
+        public static class DriveConstants {
+            public static final double MAX_ACCELERATION = 45;
+            public static final double MAX_DRIVE_SPEED = 100;
+            public static final double MAX_ANGULAR_SPEED = 50;
+            public static final double SLOWDOWN_PERCENT = 0.5;
+            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 30;
+            public static final int ANGLE_MOTOR_CURRENT_LIMIT = 20;
+            public static final Translation2d[] MODULE_LOCATIONS = new Translation2d[] {
+                    new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
+                            RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
+                            -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
+                            RobotConstants.TRACK_WIDTH / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER),
+                    new Translation2d(-RobotConstants.WHEELBASE / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER,
+                            -RobotConstants.TRACK_WIDTH / 2.0 + RobotConstants.EDGE_TO_MODULE_CENTER), };
+            public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(MODULE_LOCATIONS);
+            public static final SwerveKinematicLimits MODULE_LIMITS = new SwerveKinematicLimits(MAX_DRIVE_SPEED,
+                    MAX_ACCELERATION, MAX_ANGULAR_SPEED);
+
+            public static boolean FIELD_CENTRIC = true;
+            public static final boolean IS_OPEN_LOOP = false;
+
+            public static final double PATH_MAX_ACCEL = 3;
+            public static final double PATH_MAX_VELOCITY = 3;
+
+            public static final double TURN_DEADBAND = Units.degreesToRadians(5);
+
+            public static final double WHEEL_COF = 1.5;
+
+            public static final RobotConfig ROBOT_CONFIG = new RobotConfig(RobotConstants.WEIGHT, // Robot mass
+                    RobotConstants.MOI, // Robot moment of inertia
+                    new ModuleConfig(RobotConstants.WHEEL_DIAMETER / 2, // wheel diameter
+                            RobotConstants.MAX_DRIVE_SPEED, // max drive velocity (m/s)
+                            WHEEL_COF, // cof between wheels and ground
+                            DCMotor.getNEO(1).withReduction(RobotConstants.DRIVE_GEAR_RATIO), // DCMotor representing motor, including reduction
+                            DRIVE_MOTOR_CURRENT_LIMIT, // current limit for drive motors
+                            1 // number of drive motors per module
+                    ), MODULE_LOCATIONS);
+            public static final PIDConstants ROTATION_PID_CONSTANTS = new PIDConstants(10, 0.0, 0);
+            public static final PIDConstants TRANSLATION_PID_CONSTANTS = new PIDConstants(7, 0.01, 0.15);
+
+            public static final double AUTO_ALIGN_TRANSLATION_kP = 5;
+            public static final double AUTO_ALIGN_TRANSLATION_kI = 0.2;
+            public static final double AUTO_ALIGN_TRANSLATION_kD = 0.25;
+
+            public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG = DriveTrainSimulationConfig.Default()
+                    .withCustomModuleTranslations(MODULE_LOCATIONS).withGyro(COTS.ofNav2X())
+                    .withRobotMass(Pounds.of(125))
+                    .withSwerveModule(COTS.ofMAXSwerve(DCMotor.getNEO(1), DCMotor.getNeo550(1), WHEEL_COF, 1));
+
+            public static class FrontLeftModuleConstants {
+                public static final int moduleID = 0;
+                public static final int driveID = 14;
+                public static final int angleID = 15;
+                public static final double angleOffset = -90;
+                public static final boolean inverted = false;
+            }
+
+            public static class BackRightModuleConstants {
+                public static final int moduleID = 3;
+                public static final int driveID = 11;
+                public static final int angleID = 10;
+                public static final double angleOffset = 90;
+                public static final boolean inverted = false;
+            }
+
+            public static class FrontRightModuleConstants {
+                public static final int moduleID = 1;
+                public static final int driveID = 17;
+                public static final int angleID = 16;
+                public static final double angleOffset = 0;
+                public static final boolean inverted = false;
+            }
+
+            public static class BackLeftModuleConstants {
+                public static final int moduleID = 2;
+                public static final int driveID = 13;
+                public static final int angleID = 12;
+                public static final double angleOffset = 180;
+                public static final boolean inverted = false;
+            }
         }
 
-        public static class FrontRightModuleConstants {
-            public static final int moduleID = 1;
-            public static final int driveID = 17;
-            public static final int angleID = 16;
-            public static final double angleOffset = 0;
-            public static final boolean inverted = false;
+        public static class SwerveConstants {
+            public static final boolean invertGyro = true;
+
+            public static final double KS = 0.1;
+            public static final double KA = 0.1;
+            public static final double KV = 0.1;
+
+            public static final double DRIVING_ENCODER_POSITION_CONVERSION_FACTOR = 1 / RobotConstants.DRIVE_GEAR_RATIO;
+            public static final double DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR = DRIVING_ENCODER_POSITION_CONVERSION_FACTOR
+                    / 60.0;
+            public static final double TURNING_ENCODER_POSITION_CONVERSION_FACTOR = (2 * Math.PI);
+            public static final double TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR = TURNING_ENCODER_POSITION_CONVERSION_FACTOR
+                    / 60.0;
+
+            public static final double TURN_PID_MIN_INPUT = -Math.PI;
+            public static final double TURN_PID_MAX_INPUT = Math.PI;
+
+            public static final double DRIVE_PID_MIN_OUTPUT = -1;
+            public static final double DRIVE_PID_MAX_OUTPUT = 1;
+            public static final double DRIVE_PID_P = 0.045;
+            public static final double DRIVE_PID_I = 0.00;
+            public static final double DRIVE_PID_D = 0.00;
+            public static final double DRIVE_PID_FF = 0;
+
+            public static final double TURN_PID_MIN_OUTPUT = -2 * Math.PI;
+            public static final double TURN_PID_MAX_OUTPUT = 2 * Math.PI;
+            public static final double TURN_PID_P = 5;
+            public static final double TURN_PID_I = 0;
+            public static final double TURN_PID_D = 0.15;
+            public static final double TURN_PID_FF = 0;
         }
-
-        public static class BackLeftModuleConstants {
-            public static final int moduleID = 2;
-            public static final int driveID = 13;
-            public static final int angleID = 12;
-            public static final double angleOffset = 180;
-            public static final boolean inverted = false;
-        }
-    }
-
-    public static class SwerveConstants {
-        public static final boolean invertGyro = true;
-
-        public static final double KS = 0.1;
-        public static final double KA = 0.1;
-        public static final double KV = 0.1;
-
-        public static final double DRIVING_ENCODER_POSITION_CONVERSION_FACTOR = 1 / RobotConstants.DRIVE_GEAR_RATIO;
-        public static final double DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR = DRIVING_ENCODER_POSITION_CONVERSION_FACTOR
-                / 60.0;
-        public static final double TURNING_ENCODER_POSITION_CONVERSION_FACTOR = (2 * Math.PI);
-        public static final double TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR = TURNING_ENCODER_POSITION_CONVERSION_FACTOR
-                / 60.0;
-
-        public static final double TURN_PID_MIN_INPUT = -Math.PI;
-        public static final double TURN_PID_MAX_INPUT = Math.PI;
-
-        public static final double DRIVE_PID_MIN_OUTPUT = -1;
-        public static final double DRIVE_PID_MAX_OUTPUT = 1;
-        public static final double DRIVE_PID_P = 0.045;
-        public static final double DRIVE_PID_I = 0.00;
-        public static final double DRIVE_PID_D = 0.00;
-        public static final double DRIVE_PID_FF = 0;
-
-        public static final double TURN_PID_MIN_OUTPUT = -2 * Math.PI;
-        public static final double TURN_PID_MAX_OUTPUT = 2 * Math.PI;
-        public static final double TURN_PID_P = 5;
-        public static final double TURN_PID_I = 0;
-        public static final double TURN_PID_D = 0.15;
-        public static final double TURN_PID_FF = 0;
     }
 
     public static class SimConstants {
@@ -255,17 +395,15 @@ public final class Constants {
 
     public static class VisionConstants {
         public static final PoseStrategy POSE_STRATEGY = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
-        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = new HashMap<>();
+        public static final Map<String, Transform3d> WAFFLE_CAMERA_TRANSFORMS = new HashMap<>();
         static {
-            CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42), Inches.of(7.308),
+            WAFFLE_CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42), Inches.of(7.308),
                     new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(-35))));
-            CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42), Inches.of(7.164),
+            WAFFLE_CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42), Inches.of(7.164),
                     new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(35))));
-            CAMERA_TRANSFORMS.put("backleft",
-                    new Transform3d(0.067, 0.274, 0.94, new Rotation3d(new Quaternion(0.04, 0.27, 0.047, 0.96))));
-            CAMERA_TRANSFORMS.put("backright", new Transform3d(0.067, -0.274, 0.94,
-                    new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(145))));
         }
+        public static final Map<String, Transform3d> COMP_CAMERA_TRANSFORMS = new HashMap<>();
+        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = getRobot() == RobotType.WAFFLE ? WAFFLE_CAMERA_TRANSFORMS : COMP_CAMERA_TRANSFORMS;
         public static final double VISION_ODOMETRY_DIFFERENCE_FILTER_THRESHOLD = 5;
         public static final int CAMERA_RES_WIDTH = 1280;
         public static final int CAMERA_RES_HEIGHT = 960;
@@ -301,15 +439,6 @@ public final class Constants {
     public static class TempConstants {
         public static final int OVERHEAT_TEMP = 80;
         public static final int SAFE_TEMP = 80;
-    }
-
-    public static class FieldConstants {
-        public static final double FIELD_LENGTH = ChoreoVariables.get("FIELD_LENGTH");
-        public static final double FIELD_WIDTH = ChoreoVariables.get("FIELD_WIDTH");
-
-        public static class Poses {
-            public static final Pose2d FIELD_CENTER = new Pose2d(FIELD_LENGTH / 2, FIELD_WIDTH / 2, new Rotation2d());
-        }
     }
 
     public static class AlertConstants {
@@ -359,5 +488,290 @@ public final class Constants {
         public static final double INTAKE_VELOCITY_THRESHOLD = 0.2;
         public static final double ALIGNED_DISTANCE = 0.03; // Meters, I think
         public static final double ALIGNED_ANGLE = 2; // Degrees
+    }
+
+        public static class RobotConstants {
+        public static final double WHEELBASE;
+        public static final double TRACK_WIDTH;
+        public static final double EDGE_TO_MODULE_CENTER;
+        public static final double RADIUS; // Distance from robot center to module center
+        public static final double WHEEL_DIAMETER;
+        public static final double DRIVE_GEAR_RATIO;
+        public static final double ANGLE_GEAR_RATIO;
+        public static final double MAX_DRIVE_SPEED;
+        public static final Mass WEIGHT;
+        public static final MomentOfInertia MOI;
+
+        static {
+            if (getRobot() == RobotType.WAFFLE) {
+                WHEELBASE = Waffle.RobotConstants.WHEELBASE;
+                TRACK_WIDTH = Waffle.RobotConstants.TRACK_WIDTH;
+                EDGE_TO_MODULE_CENTER = Waffle.RobotConstants.EDGE_TO_MODULE_CENTER;
+                RADIUS = Waffle.RobotConstants.RADIUS;
+                WHEEL_DIAMETER = Waffle.RobotConstants.WHEEL_DIAMETER;
+                DRIVE_GEAR_RATIO = Waffle.RobotConstants.DRIVE_GEAR_RATIO;
+                ANGLE_GEAR_RATIO = Waffle.RobotConstants.ANGLE_GEAR_RATIO;
+                MAX_DRIVE_SPEED = Waffle.RobotConstants.MAX_DRIVE_SPEED;
+                WEIGHT = Waffle.RobotConstants.WEIGHT;
+                MOI = Waffle.RobotConstants.MOI;
+            } else {
+                WHEELBASE = Comp.RobotConstants.WHEELBASE;
+                TRACK_WIDTH = Comp.RobotConstants.TRACK_WIDTH;
+                EDGE_TO_MODULE_CENTER = Comp.RobotConstants.EDGE_TO_MODULE_CENTER;
+                RADIUS = Comp.RobotConstants.RADIUS;
+                WHEEL_DIAMETER = Comp.RobotConstants.WHEEL_DIAMETER;
+                DRIVE_GEAR_RATIO = Comp.RobotConstants.DRIVE_GEAR_RATIO;
+                ANGLE_GEAR_RATIO = Comp.RobotConstants.ANGLE_GEAR_RATIO;
+                MAX_DRIVE_SPEED = Comp.RobotConstants.MAX_DRIVE_SPEED;
+                WEIGHT = Comp.RobotConstants.WEIGHT;
+                MOI = Comp.RobotConstants.MOI;
+            }
+        }
+    }
+
+    public static class DriveConstants {
+        public static final double MAX_ACCELERATION;
+        public static final double MAX_DRIVE_SPEED;
+        public static final double MAX_ANGULAR_SPEED;
+        public static final double SLOWDOWN_PERCENT;
+        public static final int DRIVE_MOTOR_CURRENT_LIMIT;
+        public static final int ANGLE_MOTOR_CURRENT_LIMIT;
+        public static final Translation2d[] MODULE_LOCATIONS;
+        public static final SwerveDriveKinematics KINEMATICS;
+        public static final SwerveKinematicLimits MODULE_LIMITS;
+        public static boolean FIELD_CENTRIC;
+        public static final boolean IS_OPEN_LOOP;
+        public static final double PATH_MAX_ACCEL;
+        public static final double PATH_MAX_VELOCITY;
+        public static final double TURN_DEADBAND;
+        public static final double WHEEL_COF;
+        public static final RobotConfig ROBOT_CONFIG;
+        public static final PIDConstants ROTATION_PID_CONSTANTS;
+        public static final PIDConstants TRANSLATION_PID_CONSTANTS;
+        public static final double AUTO_ALIGN_TRANSLATION_kP;
+        public static final double AUTO_ALIGN_TRANSLATION_kI;
+        public static final double AUTO_ALIGN_TRANSLATION_kD;
+        public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG;
+
+        static {
+            if (getRobot() == RobotType.WAFFLE) {
+                MAX_ACCELERATION = Waffle.DriveConstants.MAX_ACCELERATION;
+                MAX_DRIVE_SPEED = Waffle.DriveConstants.MAX_DRIVE_SPEED;
+                MAX_ANGULAR_SPEED = Waffle.DriveConstants.MAX_ANGULAR_SPEED;
+                SLOWDOWN_PERCENT = Waffle.DriveConstants.SLOWDOWN_PERCENT;
+                DRIVE_MOTOR_CURRENT_LIMIT = Waffle.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT;
+                ANGLE_MOTOR_CURRENT_LIMIT = Waffle.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT;
+                MODULE_LOCATIONS = Waffle.DriveConstants.MODULE_LOCATIONS;
+                KINEMATICS = Waffle.DriveConstants.KINEMATICS;
+                MODULE_LIMITS = Waffle.DriveConstants.MODULE_LIMITS;
+                FIELD_CENTRIC = Waffle.DriveConstants.FIELD_CENTRIC;
+                IS_OPEN_LOOP = Waffle.DriveConstants.IS_OPEN_LOOP;
+                PATH_MAX_ACCEL = Waffle.DriveConstants.PATH_MAX_ACCEL;
+                PATH_MAX_VELOCITY = Waffle.DriveConstants.PATH_MAX_VELOCITY;
+                TURN_DEADBAND = Waffle.DriveConstants.TURN_DEADBAND;
+                WHEEL_COF = Waffle.DriveConstants.WHEEL_COF;
+                ROBOT_CONFIG = Waffle.DriveConstants.ROBOT_CONFIG;
+                ROTATION_PID_CONSTANTS = Waffle.DriveConstants.ROTATION_PID_CONSTANTS;
+                TRANSLATION_PID_CONSTANTS = Waffle.DriveConstants.TRANSLATION_PID_CONSTANTS;
+                AUTO_ALIGN_TRANSLATION_kP = Waffle.DriveConstants.AUTO_ALIGN_TRANSLATION_kP;
+                AUTO_ALIGN_TRANSLATION_kI = Waffle.DriveConstants.AUTO_ALIGN_TRANSLATION_kI;
+                AUTO_ALIGN_TRANSLATION_kD = Waffle.DriveConstants.AUTO_ALIGN_TRANSLATION_kD;
+                MAPLE_SIM_CONFIG = Waffle.DriveConstants.MAPLE_SIM_CONFIG;
+            } else {
+                MAX_ACCELERATION = Comp.DriveConstants.MAX_ACCELERATION;
+                MAX_DRIVE_SPEED = Comp.DriveConstants.MAX_DRIVE_SPEED;
+                MAX_ANGULAR_SPEED = Comp.DriveConstants.MAX_ANGULAR_SPEED;
+                SLOWDOWN_PERCENT = Comp.DriveConstants.SLOWDOWN_PERCENT;
+                DRIVE_MOTOR_CURRENT_LIMIT = Comp.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT;
+                ANGLE_MOTOR_CURRENT_LIMIT = Comp.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT;
+                MODULE_LOCATIONS = Comp.DriveConstants.MODULE_LOCATIONS;
+                KINEMATICS = Comp.DriveConstants.KINEMATICS;
+                MODULE_LIMITS = Comp.DriveConstants.MODULE_LIMITS;
+                FIELD_CENTRIC = Comp.DriveConstants.FIELD_CENTRIC;
+                IS_OPEN_LOOP = Comp.DriveConstants.IS_OPEN_LOOP;
+                PATH_MAX_ACCEL = Comp.DriveConstants.PATH_MAX_ACCEL;
+                PATH_MAX_VELOCITY = Comp.DriveConstants.PATH_MAX_VELOCITY;
+                TURN_DEADBAND = Comp.DriveConstants.TURN_DEADBAND;
+                WHEEL_COF = Comp.DriveConstants.WHEEL_COF;
+                ROBOT_CONFIG = Comp.DriveConstants.ROBOT_CONFIG;
+                ROTATION_PID_CONSTANTS = Comp.DriveConstants.ROTATION_PID_CONSTANTS;
+                TRANSLATION_PID_CONSTANTS = Comp.DriveConstants.TRANSLATION_PID_CONSTANTS;
+                AUTO_ALIGN_TRANSLATION_kP = Comp.DriveConstants.AUTO_ALIGN_TRANSLATION_kP;
+                AUTO_ALIGN_TRANSLATION_kI = Comp.DriveConstants.AUTO_ALIGN_TRANSLATION_kI;
+                AUTO_ALIGN_TRANSLATION_kD = Comp.DriveConstants.AUTO_ALIGN_TRANSLATION_kD;
+                MAPLE_SIM_CONFIG = Comp.DriveConstants.MAPLE_SIM_CONFIG;
+            }
+        }
+
+        public static class FrontLeftModuleConstants {
+            public static final int moduleID;
+            public static final int driveID;
+            public static final int angleID;
+            public static final double angleOffset;
+            public static final boolean inverted;
+
+            static {
+                if (getRobot() == RobotType.WAFFLE) {
+                    moduleID = Waffle.DriveConstants.FrontLeftModuleConstants.moduleID;
+                    driveID = Waffle.DriveConstants.FrontLeftModuleConstants.driveID;
+                    angleID = Waffle.DriveConstants.FrontLeftModuleConstants.angleID;
+                    angleOffset = Waffle.DriveConstants.FrontLeftModuleConstants.angleOffset;
+                    inverted = Waffle.DriveConstants.FrontLeftModuleConstants.inverted;
+                } else {
+                    moduleID = Comp.DriveConstants.FrontLeftModuleConstants.moduleID;
+                    driveID = Comp.DriveConstants.FrontLeftModuleConstants.driveID;
+                    angleID = Comp.DriveConstants.FrontLeftModuleConstants.angleID;
+                    angleOffset = Comp.DriveConstants.FrontLeftModuleConstants.angleOffset;
+                    inverted = Comp.DriveConstants.FrontLeftModuleConstants.inverted;
+                }
+            }
+        }
+
+        public static class BackRightModuleConstants {
+            public static final int moduleID;
+            public static final int driveID;
+            public static final int angleID;
+            public static final double angleOffset;
+            public static final boolean inverted;
+
+            static {
+                if (getRobot() == RobotType.WAFFLE) {
+                    moduleID = Waffle.DriveConstants.BackRightModuleConstants.moduleID;
+                    driveID = Waffle.DriveConstants.BackRightModuleConstants.driveID;
+                    angleID = Waffle.DriveConstants.BackRightModuleConstants.angleID;
+                    angleOffset = Waffle.DriveConstants.BackRightModuleConstants.angleOffset;
+                    inverted = Waffle.DriveConstants.BackRightModuleConstants.inverted;
+                } else {
+                    moduleID = Comp.DriveConstants.BackRightModuleConstants.moduleID;
+                    driveID = Comp.DriveConstants.BackRightModuleConstants.driveID;
+                    angleID = Comp.DriveConstants.BackRightModuleConstants.angleID;
+                    angleOffset = Comp.DriveConstants.BackRightModuleConstants.angleOffset;
+                    inverted = Comp.DriveConstants.BackRightModuleConstants.inverted;
+                }
+            }
+        }
+
+        public static class FrontRightModuleConstants {
+            public static final int moduleID;
+            public static final int driveID;
+            public static final int angleID;
+            public static final double angleOffset;
+            public static final boolean inverted;
+
+            static {
+                if (getRobot() == RobotType.WAFFLE) {
+                    moduleID = Waffle.DriveConstants.FrontRightModuleConstants.moduleID;
+                    driveID = Waffle.DriveConstants.FrontRightModuleConstants.driveID;
+                    angleID = Waffle.DriveConstants.FrontRightModuleConstants.angleID;
+                    angleOffset = Waffle.DriveConstants.FrontRightModuleConstants.angleOffset;
+                    inverted = Waffle.DriveConstants.FrontRightModuleConstants.inverted;
+                } else {
+                    moduleID = Comp.DriveConstants.FrontRightModuleConstants.moduleID;
+                    driveID = Comp.DriveConstants.FrontRightModuleConstants.driveID;
+                    angleID = Comp.DriveConstants.FrontRightModuleConstants.angleID;
+                    angleOffset = Comp.DriveConstants.FrontRightModuleConstants.angleOffset;
+                    inverted = Comp.DriveConstants.FrontRightModuleConstants.inverted;
+                }
+            }
+        }
+
+        public static class BackLeftModuleConstants {
+            public static final int moduleID;
+            public static final int driveID;
+            public static final int angleID;
+            public static final double angleOffset;
+            public static final boolean inverted;
+
+            static {
+                if (getRobot() == RobotType.WAFFLE) {
+                    moduleID = Waffle.DriveConstants.BackLeftModuleConstants.moduleID;
+                    driveID = Waffle.DriveConstants.BackLeftModuleConstants.driveID;
+                    angleID = Waffle.DriveConstants.BackLeftModuleConstants.angleID;
+                    angleOffset = Waffle.DriveConstants.BackLeftModuleConstants.angleOffset;
+                    inverted = Waffle.DriveConstants.BackLeftModuleConstants.inverted;
+                } else {
+                    moduleID = Comp.DriveConstants.BackLeftModuleConstants.moduleID;
+                    driveID = Comp.DriveConstants.BackLeftModuleConstants.driveID;
+                    angleID = Comp.DriveConstants.BackLeftModuleConstants.angleID;
+                    angleOffset = Comp.DriveConstants.BackLeftModuleConstants.angleOffset;
+                    inverted = Comp.DriveConstants.BackLeftModuleConstants.inverted;
+                }
+            }
+        }
+    }
+
+    public static class SwerveConstants {
+        public static final boolean invertGyro;
+        public static final double KS;
+        public static final double KA;
+        public static final double KV;
+        public static final double DRIVING_ENCODER_POSITION_CONVERSION_FACTOR;
+        public static final double DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+        public static final double TURNING_ENCODER_POSITION_CONVERSION_FACTOR;
+        public static final double TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+        public static final double TURN_PID_MIN_INPUT;
+        public static final double TURN_PID_MAX_INPUT;
+        public static final double DRIVE_PID_MIN_OUTPUT;
+        public static final double DRIVE_PID_MAX_OUTPUT;
+        public static final double DRIVE_PID_P;
+        public static final double DRIVE_PID_I;
+        public static final double DRIVE_PID_D;
+        public static final double DRIVE_PID_FF;
+        public static final double TURN_PID_MIN_OUTPUT;
+        public static final double TURN_PID_MAX_OUTPUT;
+        public static final double TURN_PID_P;
+        public static final double TURN_PID_I;
+        public static final double TURN_PID_D;
+        public static final double TURN_PID_FF;
+
+        static {
+            if (getRobot() == RobotType.WAFFLE) {
+                invertGyro = Waffle.SwerveConstants.invertGyro;
+                KS = Waffle.SwerveConstants.KS;
+                KA = Waffle.SwerveConstants.KA;
+                KV = Waffle.SwerveConstants.KV;
+                DRIVING_ENCODER_POSITION_CONVERSION_FACTOR = Waffle.SwerveConstants.DRIVING_ENCODER_POSITION_CONVERSION_FACTOR;
+                DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR = Waffle.SwerveConstants.DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+                TURNING_ENCODER_POSITION_CONVERSION_FACTOR = Waffle.SwerveConstants.TURNING_ENCODER_POSITION_CONVERSION_FACTOR;
+                TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR = Waffle.SwerveConstants.TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+                TURN_PID_MIN_INPUT = Waffle.SwerveConstants.TURN_PID_MIN_INPUT;
+                TURN_PID_MAX_INPUT = Waffle.SwerveConstants.TURN_PID_MAX_INPUT;
+                DRIVE_PID_MIN_OUTPUT = Waffle.SwerveConstants.DRIVE_PID_MIN_OUTPUT;
+                DRIVE_PID_MAX_OUTPUT = Waffle.SwerveConstants.DRIVE_PID_MAX_OUTPUT;
+                DRIVE_PID_P = Waffle.SwerveConstants.DRIVE_PID_P;
+                DRIVE_PID_I = Waffle.SwerveConstants.DRIVE_PID_I;
+                DRIVE_PID_D = Waffle.SwerveConstants.DRIVE_PID_D;
+                DRIVE_PID_FF = Waffle.SwerveConstants.DRIVE_PID_FF;
+                TURN_PID_MIN_OUTPUT = Waffle.SwerveConstants.TURN_PID_MIN_OUTPUT;
+                TURN_PID_MAX_OUTPUT = Waffle.SwerveConstants.TURN_PID_MAX_OUTPUT;
+                TURN_PID_P = Waffle.SwerveConstants.TURN_PID_P;
+                TURN_PID_I = Waffle.SwerveConstants.TURN_PID_I;
+                TURN_PID_D = Waffle.SwerveConstants.TURN_PID_D;
+                TURN_PID_FF = Waffle.SwerveConstants.TURN_PID_FF;
+            } else {
+                invertGyro = Comp.SwerveConstants.invertGyro;
+                KS = Comp.SwerveConstants.KS;
+                KA = Comp.SwerveConstants.KA;
+                KV = Comp.SwerveConstants.KV;
+                DRIVING_ENCODER_POSITION_CONVERSION_FACTOR = Comp.SwerveConstants.DRIVING_ENCODER_POSITION_CONVERSION_FACTOR;
+                DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR = Comp.SwerveConstants.DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+                TURNING_ENCODER_POSITION_CONVERSION_FACTOR = Comp.SwerveConstants.TURNING_ENCODER_POSITION_CONVERSION_FACTOR;
+                TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR = Comp.SwerveConstants.TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR;
+                TURN_PID_MIN_INPUT = Comp.SwerveConstants.TURN_PID_MIN_INPUT;
+                TURN_PID_MAX_INPUT = Comp.SwerveConstants.TURN_PID_MAX_INPUT;
+                DRIVE_PID_MIN_OUTPUT = Comp.SwerveConstants.DRIVE_PID_MIN_OUTPUT;
+                DRIVE_PID_MAX_OUTPUT = Comp.SwerveConstants.DRIVE_PID_MAX_OUTPUT;
+                DRIVE_PID_P = Comp.SwerveConstants.DRIVE_PID_P;
+                DRIVE_PID_I = Comp.SwerveConstants.DRIVE_PID_I;
+                DRIVE_PID_D = Comp.SwerveConstants.DRIVE_PID_D;
+                DRIVE_PID_FF = Comp.SwerveConstants.DRIVE_PID_FF;
+                TURN_PID_MIN_OUTPUT = Comp.SwerveConstants.TURN_PID_MIN_OUTPUT;
+                TURN_PID_MAX_OUTPUT = Comp.SwerveConstants.TURN_PID_MAX_OUTPUT;
+                TURN_PID_P = Comp.SwerveConstants.TURN_PID_P;
+                TURN_PID_I = Comp.SwerveConstants.TURN_PID_I;
+                TURN_PID_D = Comp.SwerveConstants.TURN_PID_D;
+                TURN_PID_FF = Comp.SwerveConstants.TURN_PID_FF;
+            }
+        }
     }
 }
