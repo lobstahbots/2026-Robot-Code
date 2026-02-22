@@ -52,7 +52,7 @@ public final class Constants {
         WAFFLE, COMP, SIM_BASIC, SIM_ADVANCED
     }
 
-    private static final RobotType robotType = RobotType.COMP;
+    private static final RobotType robotType = RobotType.SIM_BASIC;
 
     // DO NOT EDIT
     private static final RobotType trueRobotType = RuntimeType
@@ -312,9 +312,9 @@ public final class Constants {
             public static final double AUTO_ALIGN_TRANSLATION_kD = 0.25;
 
             public static final DriveTrainSimulationConfig MAPLE_SIM_CONFIG = DriveTrainSimulationConfig.Default()
-                    .withCustomModuleTranslations(MODULE_LOCATIONS).withGyro(COTS.ofNav2X())
-                    .withRobotMass(Pounds.of(125))
-                    .withSwerveModule(COTS.ofMAXSwerve(DCMotor.getNEO(1), DCMotor.getNeo550(1), WHEEL_COF, 1));
+                    .withCustomModuleTranslations(MODULE_LOCATIONS).withGyro(COTS.ofGenericGyro())
+                    .withRobotMass(RobotConstants.WEIGHT)
+                    .withSwerveModule(COTS.ofMAXSwerve(DCMotor.getFalcon500(1), DCMotor.getNeo550(1), WHEEL_COF, 2));
 
             public static class FrontLeftModuleConstants {
                 public static final int moduleID = 0;
@@ -446,7 +446,7 @@ public final class Constants {
         public static final double ALLOWED_PROFILE_ERROR = 0.4; // rotations
 
         public static final Rotation2d DEPLOYED = Rotation2d.kZero;
-        public static final Rotation2d STOWED = Rotation2d.kCW_90deg;
+        public static final Rotation2d STOWED = Rotation2d.kCCW_90deg;
         public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(2);
 
         public static final int ARM_ID = 20;

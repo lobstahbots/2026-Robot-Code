@@ -16,6 +16,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.AutoFactory.CharacterizationRoutine;
@@ -111,7 +113,12 @@ public class RobotContainer {
             intake = new Intake(new IntakeIOSparkMax(IntakeConstants.ARM_ID, IntakeConstants.ROLLER_ID));
         } else if (!(Constants.getMode() == RobotMode.REPLAY)) {
             driveSimulation = new SwerveDriveSimulation(DriveConstants.MAPLE_SIM_CONFIG,
-                    new Pose2d(3, 3, new Rotation2d()));
+                    new Pose2d(
+                            FieldConstants.RightTrench.openingTopLeft.plus(FieldConstants.RightTrench.openingTopRight)
+                                    .div(2).toTranslation2d(),
+                            DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red
+                                    ? Rotation2d.kZero
+                                    : Rotation2d.k180deg));
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
 
             var modules = driveSimulation.getModules();
@@ -133,7 +140,7 @@ public class RobotContainer {
             if (Constants.getRobot() == RobotType.SIM_BASIC) {
                 intake = new Intake(new IntakeIOSimBasic());
             } else {
-                intake = new Intake(new IntakeIO() {});
+                intake = new Intake(new IntakeIOSimBasic());
             }
         } else {
             driveBase = new DriveBase(new GyroIO() {}, List.of(), new SwerveModuleIO() {}, new SwerveModuleIO() {},

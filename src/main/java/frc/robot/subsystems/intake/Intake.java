@@ -4,7 +4,14 @@
 
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
+
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,6 +22,12 @@ public class Intake extends SubsystemBase {
 
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
     private final IntakeIO io;
+    private final LoggedMechanism2d mech2d = new LoggedMechanism2d(Feet.of(3), Feet.of(2));
+
+    private final LoggedMechanismRoot2d root = mech2d.getRoot("Intake",
+            Feet.of(1.5).plus(Inches.of(6.5)).baseUnitMagnitude(), Inches.of(8).baseUnitMagnitude());
+    private final LoggedMechanismLigament2d arm2d = root
+            .append(new LoggedMechanismLigament2d("Arm", Inches.of(12), Degrees.of(0)));
 
     private boolean hasZeroed = false;
 
@@ -43,6 +56,8 @@ public class Intake extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
+        arm2d.setAngle(getPosition());
+        Logger.recordOutput("IntakeMech2d", mech2d);
     }
 
     public Command spin() {
