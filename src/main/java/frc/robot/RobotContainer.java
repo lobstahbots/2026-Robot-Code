@@ -49,6 +49,7 @@ import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.util.auto.AutonSelector;
 import frc.robot.util.auto.AutonSelector.AutoQuestion;
+import frc.robot.util.command.CycleCommand;
 import frc.robot.util.led.LEDs;
 
 public class RobotContainer {
@@ -170,7 +171,9 @@ public class RobotContainer {
         return command;
     }
 
-    public void configureButtonBindings() {}
+    public void configureButtonBindings() {
+        Controllers.driver.LTButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+    }
 
     public boolean getOperatorConnected() {
         return Controllers.operator.isConnected();
