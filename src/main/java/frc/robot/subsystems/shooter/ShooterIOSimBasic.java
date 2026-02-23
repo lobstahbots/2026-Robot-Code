@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.SimConstants;
 
@@ -19,20 +20,13 @@ public class ShooterIOSimBasic implements ShooterIO {
             ShooterConstants.HOOD_CRUISE_VELOCITY, ShooterConstants.HOOD_MAX_ACCELERATION));
     private TrapezoidProfile.State goal = state;
 
-    public void stopArmMotor() {
-        goal = new TrapezoidProfile.State(state.position, 0);
-    }
 
-    public void setFlywheelVelocity(double speed) {
-        flywheelVelocity = 20 * speed;
+    public void setFlywheelVelocity(AngularVelocity velocity) {
+        flywheelVelocity = velocity.in(RotationsPerSecond);
     }
 
     public void stopFlywheelMotor() {
         flywheelVelocity = 0.0;
-    }
-
-    public void setFlywheelVoltage(double voltage) {
-        setFlywheelVelocity(voltage / 12.0);
     }
 
     public void setHoodPosition(Rotation2d position) {
@@ -44,7 +38,7 @@ public class ShooterIOSimBasic implements ShooterIO {
         inputs.hoodPosition = Rotation2d.fromRotations(state.position);
         inputs.hoodVelocity = RotationsPerSecond.of(state.velocity);
         // trick homing code
-        if (inputs.hoodPosition == ShooterConstants.MIN_ANGLE) {
+        if (inputs.hoodPosition.equals(ShooterConstants.MIN_ANGLE)) {
             inputs.hoodCurrent = 11;
         } else {
             inputs.hoodCurrent = 0;

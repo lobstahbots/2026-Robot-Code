@@ -40,7 +40,7 @@ public class ShooterIOSparkMax implements ShooterIO {
         flywheelConfig.smartCurrentLimit(ShooterConstants.FLYWHEEL_CURRENT_LIMIT).idleMode(IdleMode.kCoast)
                 .inverted(false);
         flywheelConfig.encoder.positionConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO)
-                .velocityConversionFactor(60 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
+                .velocityConversionFactor(1 / 60.0 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
                 .quadratureMeasurementPeriod(10);
         flywheelConfig.closedLoop
                 .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD)
@@ -60,9 +60,9 @@ public class ShooterIOSparkMax implements ShooterIO {
         SparkMaxConfig hoodConfig = new SparkMaxConfig();
         hoodConfig.smartCurrentLimit(ShooterConstants.HOOD_CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false);
         hoodConfig.encoder.positionConversionFactor(1 / ShooterConstants.HOOD_GEAR_RATIO)
-                .velocityConversionFactor(60 / ShooterConstants.HOOD_GEAR_RATIO);
+                .velocityConversionFactor(1 / 60.0 / ShooterConstants.HOOD_GEAR_RATIO);
         hoodConfig.alternateEncoder.positionConversionFactor(1 / ShooterConstants.HERRINGBONE_RATIO)
-                .velocityConversionFactor(60 / ShooterConstants.HERRINGBONE_RATIO);
+                .velocityConversionFactor(1 / 60.0 / ShooterConstants.HERRINGBONE_RATIO);
         hoodConfig.closedLoop.pid(ShooterConstants.HOOD_kP, ShooterConstants.HOOD_kI, ShooterConstants.HOOD_kD)
                 .apply(new FeedForwardConfig().svacr(ShooterConstants.HOOD_kS, ShooterConstants.HOOD_kV,
                         ShooterConstants.HOOD_kA, ShooterConstants.HOOD_kG, 1))
@@ -92,9 +92,9 @@ public class ShooterIOSparkMax implements ShooterIO {
 
     public void updateInputs(ShooterIOInputs inputs) {
         inputs.flywheelVelocity = RotationsPerSecond.of(flywheelEncoder.getVelocity());
-        inputs.flywheelAppliedVoltages[0] = flywheelMotor1.getAppliedOutput() * 12;
-        inputs.flywheelAppliedVoltages[1] = flywheelMotor2.getAppliedOutput() * 12;
-        inputs.flywheelAppliedVoltages[2] = flywheelMotor3.getAppliedOutput() * 12;
+        inputs.flywheelAppliedVoltages[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
+        inputs.flywheelAppliedVoltages[1] = flywheelMotor2.getAppliedOutput() * flywheelMotor2.getBusVoltage();
+        inputs.flywheelAppliedVoltages[2] = flywheelMotor3.getAppliedOutput() * flywheelMotor3.getBusVoltage();
         inputs.flywheelCurrents[0] = flywheelMotor1.getOutputCurrent();
         inputs.flywheelCurrents[1] = flywheelMotor2.getOutputCurrent();
         inputs.flywheelCurrents[2] = flywheelMotor3.getOutputCurrent();
@@ -104,7 +104,7 @@ public class ShooterIOSparkMax implements ShooterIO {
 
         inputs.hoodPosition = Rotation2d.fromRotations(hoodEncoder.getPosition());
         inputs.hoodVelocity = RotationsPerSecond.of(hoodEncoder.getVelocity());
-        inputs.hoodAppliedVoltage = hoodMotor.getAppliedOutput() * 12;
+        inputs.hoodAppliedVoltage = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
         inputs.hoodCurrent = hoodMotor.getOutputCurrent();
         inputs.hoodTemperature = hoodMotor.getMotorTemperature();
     }
