@@ -429,7 +429,7 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final int CURRENT_LIMIT = 40;
+        public static final int CURRENT_LIMIT = 30;
         public static final double ARM_DEPLOY_SPEED = 1.0;
         public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
         public static final double GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0);
@@ -451,6 +451,10 @@ public final class Constants {
 
         public static final int ARM_ID = 20;
         public static final int ROLLER_ID = 21;
+    }
+
+    public static class IndexerConstants {
+        public static final int CURRENT_LIMIT = 20;
     }
 
     public static class DriverAssistConstants {
