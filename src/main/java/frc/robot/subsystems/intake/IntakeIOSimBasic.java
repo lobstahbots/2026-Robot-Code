@@ -42,7 +42,7 @@ public class IntakeIOSimBasic implements IntakeIO {
         inputs.armPosition = Rotation2d.fromRotations(state.position);
         inputs.armVelocity = state.velocity;
         // trick homing code
-        if (inputs.armPosition == IntakeConstants.STOWED) {
+        if (inputs.armPosition.equals(IntakeConstants.STOWED)) {
             inputs.armCurrentAmps = IntakeConstants.ARM_DEPLOY_CURRENT_THRESHOLD + 1;
         } else {
             inputs.armCurrentAmps = 0;

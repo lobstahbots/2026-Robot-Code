@@ -38,12 +38,12 @@ public class IntakeIOSparkMax implements IntakeIO {
         SparkMaxConfig config = new SparkMaxConfig();
 
         config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false).encoder
-                .velocityConversionFactor(60.0);
+                .velocityConversionFactor(1 / 60.0);
 
         rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         config.encoder.positionConversionFactor(1.0 / IntakeConstants.GEAR_RATIO)
-                .velocityConversionFactor(60.0 / IntakeConstants.GEAR_RATIO);
+                .velocityConversionFactor(1 / 60.0 / IntakeConstants.GEAR_RATIO);
         config.closedLoop.pid(IntakeConstants.kP, IntakeConstants.kI, IntakeConstants.kD)
                 .apply(new FeedForwardConfig().svacr(IntakeConstants.kS, IntakeConstants.kV, IntakeConstants.kA,
                         IntakeConstants.kG, 1))
