@@ -453,6 +453,10 @@ public final class Constants {
         public static final int ROLLER_ID = 21;
     }
 
+    public static class IndexerConstants {
+        public static final int CURRENT_LIMIT = 40;
+    }
+
     public static class DriverAssistConstants {
         public static final double TRENCH_ASSIST_RADIUS = Units.feetToMeters(5);
         public static final double TRENCH_ASSIST_STRENGTH = 2;
