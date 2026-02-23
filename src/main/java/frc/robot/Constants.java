@@ -429,10 +429,10 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final int CURRENT_LIMIT = ;
+        public static final int CURRENT_LIMIT = 30;
         public static final double ARM_DEPLOY_SPEED = 1.0;
         public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
-        public static final double GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * ( / 20.0);
+        public static final double GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0);
 
         public static final double kP = 0.1;
         public static final double kI = 0.0;
