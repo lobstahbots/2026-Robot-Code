@@ -494,7 +494,7 @@ public final class Constants {
     }
 
     public static class DriverAssistConstants {
-        public static final double TRENCH_ASSIST_RADIUS = Units.feetToMeters(5);
+        public static final double TRENCH_ASSIST_RADIUS = Units.feetToMeters(8);
         public static final double TRENCH_ASSIST_STRENGTH = 2;
     }
 
