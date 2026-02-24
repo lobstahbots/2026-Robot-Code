@@ -457,6 +457,42 @@ public final class Constants {
         public static final int CURRENT_LIMIT = 20;
     }
 
+    public static class ShooterConstants {
+        public static final int HOOD_ID = 40;
+        public static final int FLYWHEEL1_ID = 41;
+        public static final int FLYWHEEL2_ID = 42;
+        public static final int FLYWHEEL3_ID = 43;
+
+        public static final double FLYWHEEL_GEAR_RATIO = (16 / 12.0) * (15 / 30.0);
+        public static final double MAXPLANETARY_RATIO = 3;
+        public static final double HERRINGBONE_RATIO = 158 / 10.0;
+        public static final double HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * HERRINGBONE_RATIO;
+
+        public static final double HOOD_kP = 0.1;
+        public static final double HOOD_kI = 0.0;
+        public static final double HOOD_kD = 0.0;
+        public static final double HOOD_kS = 0.0;
+        public static final double HOOD_kV = 0.0;
+        public static final double HOOD_kA = 0.0;
+        public static final double HOOD_kG = 0.0;
+        public static final double HOOD_CRUISE_VELOCITY = 10.0;
+        public static final double HOOD_MAX_ACCELERATION = 30.0;
+        public static final double HOOD_ALLOWED_PROFILE_ERROR = 0.4; // rotations
+        public static final int HOOD_CURRENT_LIMIT = 20;
+
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-10);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40);
+
+        public static final double FLYWHEEL_kP = 0.1;
+        public static final double FLYWHEEL_kI = 0.0;
+        public static final double FLYWHEEL_kD = 0.0;
+        public static final double FLYWHEEL_kS = 0.0;
+        public static final double FLYWHEEL_kV = 0.0;
+        public static final double FLYWHEEL_kA = 0.0;
+        public static final double FLYWHEEL_MAX_ACCELERATION = 100;
+        public static final int FLYWHEEL_CURRENT_LIMIT = 40;
+    }
+
     public static class DriverAssistConstants {
         public static final double TRENCH_ASSIST_RADIUS = Units.feetToMeters(5);
         public static final double TRENCH_ASSIST_STRENGTH = 2;
