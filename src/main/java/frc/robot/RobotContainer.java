@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.AngularVelocityUnit;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,9 +28,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.AutoFactory.CharacterizationRoutine;
 import frc.robot.Constants.Comp;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.RobotMode;
 import frc.robot.Constants.RobotType;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.DriveConstants.BackLeftModuleConstants;
 import frc.robot.Constants.DriveConstants.BackRightModuleConstants;
 import frc.robot.Constants.DriveConstants.FrontLeftModuleConstants;
@@ -42,10 +49,16 @@ import frc.robot.subsystems.drive.SwerveModuleIO;
 import frc.robot.subsystems.drive.SwerveModuleIOSim;
 import frc.robot.subsystems.drive.SwerveModuleIOSparkMax;
 import frc.robot.subsystems.drive.SwerveModuleIOTalonFX;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIO;
+import frc.robot.subsystems.indexer.IndexerIOSparkMax;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSimBasic;
 import frc.robot.subsystems.intake.IntakeIOSparkMax;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOSparkMax;
 import frc.robot.subsystems.vision.Camera;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOSim;
@@ -59,6 +72,8 @@ public class RobotContainer {
 
     private final DriveBase driveBase;
     private final Intake intake;
+    private final Indexer indexer;
+    private final Shooter shooter;
 
     private final AutonSelector<Object> autoChooser = new AutonSelector<>("Auto Chooser", "Do Nothing", List.of(),
             () -> Commands.none());
@@ -91,6 +106,8 @@ public class RobotContainer {
                     .map(name -> new Camera(new CameraIOPhoton(name))).toList();
             driveBase = new DriveBase(new GyroIONavX(), cameras, frontLeft, frontRight, backLeft, backRight, false);
             intake = new Intake(new IntakeIO() {});
+            indexer = new Indexer(new IndexerIO() {});
+            shooter = new Shooter(new ShooterIO() {});
         } else if (Constants.getRobot() == Constants.RobotType.COMP
                 && Constants.getMode() == Constants.RobotMode.REAL) {
             SwerveModuleIOTalonFX frontLeft = new SwerveModuleIOTalonFX(FrontLeftModuleConstants.moduleID,
@@ -111,6 +128,11 @@ public class RobotContainer {
             driveBase = new DriveBase(new GyroIOCanandgyro(Comp.RobotConstants.GYRO_ID), cameras, frontLeft, frontRight,
                     backLeft, backRight, false);
             intake = new Intake(new IntakeIOSparkMax(IntakeConstants.ARM_ID, IntakeConstants.ROLLER_ID));
+            indexer = new Indexer(
+                    new IndexerIOSparkMax(IndexerConstants.INDEXER_MOTOR_ID, IndexerConstants.FEEDER_MOTOR_ID));
+            shooter = new Shooter(new ShooterIOSparkMax(ShooterConstants.FLYWHEEL1_ID, ShooterConstants.FLYWHEEL2_ID,
+                    ShooterConstants.FLYWHEEL3_ID, ShooterConstants.HOOD_ID));
+            System.out.println("real");
         } else if (!(Constants.getMode() == RobotMode.REPLAY)) {
             driveSimulation = new SwerveDriveSimulation(DriveConstants.MAPLE_SIM_CONFIG,
                     new Pose2d(
@@ -142,10 +164,14 @@ public class RobotContainer {
             } else {
                 intake = new Intake(new IntakeIOSimBasic());
             }
+            indexer = new Indexer(new IndexerIO() {});
+            shooter = new Shooter(new ShooterIO() {});
         } else {
             driveBase = new DriveBase(new GyroIO() {}, List.of(), new SwerveModuleIO() {}, new SwerveModuleIO() {},
                     new SwerveModuleIO() {}, new SwerveModuleIO() {}, false);
             intake = new Intake(new IntakeIO() {});
+            indexer = new Indexer(new IndexerIO() {});
+            shooter = new Shooter(new ShooterIO() {});
         }
 
         this.autoFactory = new AutoFactory(driveBase, autoChooser::getResponses, (Pose2d newPose) -> {
@@ -179,7 +205,10 @@ public class RobotContainer {
     }
 
     public void configureButtonBindings() {
-        Controllers.driver.LTButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.driver.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.driver.leftPaddle.whileTrue(intake.spin());
+        Controllers.driver.RBButton.whileTrue(indexer.spin());
+        Controllers.driver.rightPaddle.whileTrue(shooter.velocity(() -> RPM.of(1000)));
     }
 
     public boolean getOperatorConnected() {

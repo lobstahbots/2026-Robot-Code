@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -37,6 +39,15 @@ public class Shooter extends SubsystemBase {
 
     public Command hoodAngle(Supplier<Rotation2d> angle) {
         return run(() -> io.setHoodPosition(angle.get()));
+    }
+
+    public Command velocity(Supplier<AngularVelocity> velocity) {
+        return runEnd(() -> io.setFlywheelVelocity(velocity.get()),
+                () -> io.setFlywheelVelocity(RotationsPerSecond.of(0)));
+    }
+
+    public Command voltage(double voltage) {
+        return startEnd(() -> io.setFlywheelVoltage(voltage), () -> io.setFlywheelVoltage(0));
     }
 
     public Command operate(Supplier<Rotation2d> hoodAngle, Supplier<AngularVelocity> flywheelVelocity) {

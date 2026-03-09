@@ -18,31 +18,39 @@ import frc.robot.Constants.IndexerConstants;
 public class IndexerIOSparkMax implements IndexerIO {
 
     private final SparkMax indexerMotor;
+    private final SparkMax feederMotor;
     private final RelativeEncoder encoder;
+    private final RelativeEncoder feederEncoder;
     /** Creates a new Indexer. */
-    public IndexerIOSparkMax(int indexerMotorID) {
+    public IndexerIOSparkMax(int indexerMotorID, int feederMotorId) {
         this.indexerMotor = new SparkMax(indexerMotorID, MotorType.kBrushless);
+        this.feederMotor = new SparkMax(feederMotorId, MotorType.kBrushless);
     
         SparkMaxConfig config = new SparkMaxConfig();
-        config.smartCurrentLimit(IndexerConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false).encoder.velocityConversionFactor(3);
+        config.smartCurrentLimit(IndexerConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder.velocityConversionFactor(3);
 
         indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         encoder = indexerMotor.getEncoder();
+        feederEncoder = feederMotor.getEncoder();
     }
 
     public void setIndexerSpeed(double speed) {
         indexerMotor.set(speed);
+        feederMotor.set(speed);
     }
 
     public void stopIndexer() {
         indexerMotor.stopMotor();
+        feederMotor.stopMotor();
     }
 
     public void setIdleMode(boolean isBrake) {
         SparkMaxConfig config = new SparkMaxConfig();
         config.idleMode(isBrake ? IdleMode.kBrake : IdleMode.kCoast);
         indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void updateInputs(IndexerIOInputs inputs) {
@@ -50,5 +58,9 @@ public class IndexerIOSparkMax implements IndexerIO {
         inputs.indexerCurrentAmps = indexerMotor.getOutputCurrent();
         inputs.indexerAppliedVoltage = indexerMotor.getAppliedOutput() * indexerMotor.getBusVoltage();
         inputs.indexerTempCelcius = indexerMotor.getMotorTemperature();
+        inputs.feederVelocity = feederEncoder.getVelocity();
+        inputs.feederCurrentAmps = feederMotor.getOutputCurrent();
+        inputs.feederAppliedVoltage = feederMotor.getAppliedOutput() * feederMotor.getBusVoltage();
+        inputs.feederTempCelcius = feederMotor.getMotorTemperature();
     }
 }

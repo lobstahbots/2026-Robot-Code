@@ -37,12 +37,12 @@ public class IntakeIOSparkMax implements IntakeIO {
 
         SparkMaxConfig config = new SparkMaxConfig();
 
-        config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false).encoder
+        config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder
                 .velocityConversionFactor(1 / 60.0);
 
         rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        config.encoder.positionConversionFactor(1.0 / IntakeConstants.GEAR_RATIO)
+        config.inverted(false).encoder.positionConversionFactor(1.0 / IntakeConstants.GEAR_RATIO)
                 .velocityConversionFactor(1 / 60.0 / IntakeConstants.GEAR_RATIO);
         config.closedLoop.pid(IntakeConstants.kP, IntakeConstants.kI, IntakeConstants.kD)
                 .apply(new FeedForwardConfig().svacr(IntakeConstants.kS, IntakeConstants.kV, IntakeConstants.kA,
@@ -55,6 +55,8 @@ public class IntakeIOSparkMax implements IntakeIO {
         armEncoder = armMotor.getEncoder();
         armController = armMotor.getClosedLoopController();
         rollerEncoder = rollerMotor.getEncoder();
+        
+        resetEncoder(IntakeConstants.STOWED);
     }
 
     public void stopArmMotor() {
@@ -111,3 +113,4 @@ public class IntakeIOSparkMax implements IntakeIO {
     }
 
 }
+

@@ -72,6 +72,7 @@ public class Robot extends LoggedRobot {
         if (Robot.isReal()) {
             Logger.addDataReceiver(new WPILOGWriter()); // Save outputs to a new log
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+            CanandEventLoop.getInstance();
         } else {
             if (Constants.getMode() == Constants.RobotMode.REPLAY) {
                 String replayPath = logPath + "\\" + SimConstants.REPLAY_LOG_PATH;
@@ -87,7 +88,6 @@ public class Robot extends LoggedRobot {
         Logger.start();
 
         m_robotContainer = new RobotContainer();
-        CanandEventLoop.getInstance();
     }
 
     /**

@@ -38,7 +38,7 @@ public class ShooterIOSparkMax implements ShooterIO {
 
         SparkMaxConfig flywheelConfig = new SparkMaxConfig();
         flywheelConfig.smartCurrentLimit(ShooterConstants.FLYWHEEL_CURRENT_LIMIT).idleMode(IdleMode.kCoast)
-                .inverted(false);
+                .inverted(true);
         flywheelConfig.encoder.positionConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO)
                 .velocityConversionFactor(1 / 60.0 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
                 .quadratureMeasurementPeriod(10);

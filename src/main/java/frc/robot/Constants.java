@@ -52,7 +52,7 @@ public final class Constants {
         WAFFLE, COMP, SIM_BASIC, SIM_ADVANCED
     }
 
-    private static final RobotType robotType = RobotType.SIM_BASIC;
+    private static final RobotType robotType = RobotType.COMP;
 
     // DO NOT EDIT
     private static final RobotType trueRobotType = RuntimeType
@@ -103,8 +103,8 @@ public final class Constants {
             public static final int LB_BUTTON = 5;
             public static final int RB_BUTTON = 6;
 
-            public static final int RIGHT_PADDLE = 7;
-            public static final int LEFT_PADDLE = 8;
+            public static final int RIGHT_PADDLE = 8;
+            public static final int LEFT_PADDLE = 7;
 
             public static final int D_PAD_UP = 0;
             public static final int D_PAD_DOWN = 180;
@@ -262,7 +262,7 @@ public final class Constants {
             public static final Mass WEIGHT = Pounds.of(150);
             public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
 
-            public static final int GYRO_ID = 3;
+            public static final int GYRO_ID = 0;
         }
 
         public static class DriveConstants {
@@ -446,7 +446,7 @@ public final class Constants {
         public static final double ALLOWED_PROFILE_ERROR = 0.4; // rotations
 
         public static final Rotation2d DEPLOYED = Rotation2d.kZero;
-        public static final Rotation2d STOWED = Rotation2d.kCCW_90deg;
+        public static final Rotation2d STOWED = Rotation2d.kCW_90deg;
         public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(2);
 
         public static final int ARM_ID = 20;
@@ -455,6 +455,8 @@ public final class Constants {
 
     public static class IndexerConstants {
         public static final int CURRENT_LIMIT = 20;
+        public static final int INDEXER_MOTOR_ID = 30;
+        public static final int FEEDER_MOTOR_ID = 31;
     }
 
     public static class ShooterConstants {
@@ -463,7 +465,7 @@ public final class Constants {
         public static final int FLYWHEEL2_ID = 42;
         public static final int FLYWHEEL3_ID = 43;
 
-        public static final double FLYWHEEL_GEAR_RATIO = (16 / 12.0) * (15 / 30.0);
+        public static final double FLYWHEEL_GEAR_RATIO = (16 / 14.0) * (15 / 30.0);
         public static final double MAXPLANETARY_RATIO = 3;
         public static final double HERRINGBONE_RATIO = 158 / 10.0;
         public static final double HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * HERRINGBONE_RATIO;
@@ -483,11 +485,11 @@ public final class Constants {
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-10);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40);
 
-        public static final double FLYWHEEL_kP = 0.1;
+        public static final double FLYWHEEL_kP = 0.0;
         public static final double FLYWHEEL_kI = 0.0;
         public static final double FLYWHEEL_kD = 0.0;
-        public static final double FLYWHEEL_kS = 0.0;
-        public static final double FLYWHEEL_kV = 0.0;
+        public static final double FLYWHEEL_kS = 0.1;
+        public static final double FLYWHEEL_kV = 2;
         public static final double FLYWHEEL_kA = 0.0;
         public static final double FLYWHEEL_MAX_ACCELERATION = 100;
         public static final int FLYWHEEL_CURRENT_LIMIT = 40;
