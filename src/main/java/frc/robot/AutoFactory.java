@@ -15,6 +15,8 @@ import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -25,6 +27,9 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.PathConstants;
 import frc.robot.subsystems.drive.DriveBase;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.util.sysId.CharacterizableSubsystem;
 
 public class AutoFactory {
@@ -33,6 +38,9 @@ public class AutoFactory {
     private final PPHolonomicDriveController driveController = new PPHolonomicDriveController(
             DriveConstants.TRANSLATION_PID_CONSTANTS, DriveConstants.ROTATION_PID_CONSTANTS);
     private final Consumer<Pose2d> poseReset;
+    private final Intake intake;
+    private final Shooter shooter;
+    private final Indexer indexer;
 
     /**
      * Create a new auto factory.
@@ -41,10 +49,14 @@ public class AutoFactory {
      * @param responsesSupplier Responses to auto chooser questions.
      * @see frc.robot.util.auto.AutonSelector
      */
-    public AutoFactory(DriveBase driveBase, Supplier<List<Object>> responsesSupplier, Consumer<Pose2d> poseReset) {
+    public AutoFactory(DriveBase driveBase, Intake intake, Shooter shooter, Indexer indexer,
+            Supplier<List<Object>> responsesSupplier, Consumer<Pose2d> poseReset) {
         this.responses = responsesSupplier;
         this.driveBase = driveBase;
         this.poseReset = poseReset;
+        this.intake = intake;
+        this.shooter = shooter;
+        this.indexer = indexer;
 
         AutoBuilder.configure(driveBase::getPose, driveBase::resetPose, driveBase::getRobotRelativeSpeeds,
                 (chassisSpeeds, driveFeedforwards) -> driveBase.driveRobotRelative(chassisSpeeds), driveController,
@@ -217,6 +229,13 @@ public class AutoFactory {
 
     public Command getLeaveAuto() {
         return driveBase.relativeDrive(0.2, 0, 0).withTimeout(3);
+    }
+
+    public Command getLeftTrench() {
+        PathPlannerPath go = getChoreoPath("leftTrench");
+        return AutoBuilder.resetOdom(go.getStartingDifferentialPose())
+                .andThen(AutoBuilder.followPath(go).deadlineFor(intake.spin())).andThen(indexer.spin())
+                .alongWith(shooter.operate(() -> Rotation2d.fromRotations(0.09), () -> RPM.of(1000)));
     }
 
     public static enum CharacterizationRoutine {

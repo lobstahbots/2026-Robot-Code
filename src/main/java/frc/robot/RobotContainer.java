@@ -174,10 +174,11 @@ public class RobotContainer {
             shooter = new Shooter(new ShooterIO() {});
         }
 
-        this.autoFactory = new AutoFactory(driveBase, autoChooser::getResponses, (Pose2d newPose) -> {
-            if (Robot.isSimulation()) driveSimulation.setSimulationWorldPose(newPose);
-            driveBase.resetPose(newPose);
-        });
+        this.autoFactory = new AutoFactory(driveBase, intake, shooter, indexer, autoChooser::getResponses,
+                (Pose2d newPose) -> {
+                    if (Robot.isSimulation()) driveSimulation.setSimulationWorldPose(newPose);
+                    driveBase.resetPose(newPose);
+                });
 
         setDefaultCommands();
         smartDashSetup();
