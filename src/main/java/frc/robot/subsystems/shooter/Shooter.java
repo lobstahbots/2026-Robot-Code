@@ -13,7 +13,10 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase {
     private final ShooterIO io;
@@ -55,5 +58,10 @@ public class Shooter extends SubsystemBase {
             io.setHoodPosition(hoodAngle.get());
             io.setFlywheelVelocity(flywheelVelocity.get());
         });
+    }
+
+    public Command zero() {
+        return runEnd(() -> io.setHoodVoltage(-10), () -> io.resetEncoder(ShooterConstants.MIN_ANGLE))
+                .finallyDo(() -> io.setHoodVoltage(0)).raceWith(new WaitCommand(0.1).andThen(Commands.idle().until(() -> inputs.hoodCurrent > 25)));
     }
 }

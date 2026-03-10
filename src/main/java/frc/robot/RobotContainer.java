@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.AutoFactory.CharacterizationRoutine;
 import frc.robot.Constants.Comp;
 import frc.robot.Constants.DriveConstants;
@@ -80,6 +81,8 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
 
     private SwerveDriveSimulation driveSimulation = null;
+
+    private AngularVelocity shooterVel = RPM.of(2000);
 
     //private int scoreLevel = 1;
 
@@ -190,7 +193,7 @@ public class RobotContainer {
         driveBase.setDefaultCommand(
                 driveBase.joystickDrive(() -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
-                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL), true));
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL)));
     }
 
     /**
@@ -199,17 +202,28 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        Command command = autoChooser.getCommand();
-        if (Robot.isSimulation())
-            command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
-        return command;
+        return shooter.zero();
+        // Command command = autoChooser.getCommand();
+        // if (Robot.isSimulation())
+        //     command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
+        // return command;
     }
 
     public void configureButtonBindings() {
-        Controllers.driver.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
-        Controllers.driver.leftPaddle.whileTrue(intake.spin());
-        Controllers.driver.RBButton.whileTrue(indexer.spin());
-        Controllers.driver.rightPaddle.whileTrue(shooter.velocity(() -> RPM.of(1000)));
+        Controllers.driver.LBButton.whileTrue(intake.spin());
+
+        Controllers.driver.RBButton.whileTrue(
+                shooter.velocity(() -> shooterVel).alongWith(new WaitCommand(1).andThen(indexer.spindex())));
+        Controllers.driver.RBButton.onFalse(shooter.velocity(() -> RPM.of(2500)).alongWith(indexer.feed()).withTimeout(1));
+
+        Controllers.driver.AButton.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(5)));
+        Controllers.driver.AButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2300)));
+
+        //Operator Test
+        Controllers.operator.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.operator.leftPaddle.whileTrue(intake.spin());
+        Controllers.operator.RBButton.whileTrue(indexer.spindex());
+        Controllers.operator.rightPaddle.whileTrue(shooter.velocity(() -> RPM.of(2500)));
     }
 
     public boolean getOperatorConnected() {

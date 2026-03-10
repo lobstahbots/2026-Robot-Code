@@ -454,7 +454,8 @@ public final class Constants {
     }
 
     public static class IndexerConstants {
-        public static final int CURRENT_LIMIT = 20;
+        public static final int SPINDEXER_CURRENT_LIMIT = 40;
+        public static final int FEEDER_MOTOR_CURRENT_LIMIT = 20;
         public static final int INDEXER_MOTOR_ID = 30;
         public static final int FEEDER_MOTOR_ID = 31;
     }
@@ -470,26 +471,26 @@ public final class Constants {
         public static final double HERRINGBONE_RATIO = 158 / 10.0;
         public static final double HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * HERRINGBONE_RATIO;
 
-        public static final double HOOD_kP = 0.1;
+        public static final double HOOD_kP = 150;
         public static final double HOOD_kI = 0.0;
         public static final double HOOD_kD = 0.0;
         public static final double HOOD_kS = 0.0;
         public static final double HOOD_kV = 0.0;
         public static final double HOOD_kA = 0.0;
         public static final double HOOD_kG = 0.0;
-        public static final double HOOD_CRUISE_VELOCITY = 10.0;
-        public static final double HOOD_MAX_ACCELERATION = 30.0;
+        public static final double HOOD_CRUISE_VELOCITY = 200.0;
+        public static final double HOOD_MAX_ACCELERATION = 240.0;
         public static final double HOOD_ALLOWED_PROFILE_ERROR = 0.4; // rotations
-        public static final int HOOD_CURRENT_LIMIT = 20;
+        public static final int HOOD_CURRENT_LIMIT = 30;
 
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-10);
-        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromRotations(-0.073);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromRotations(0.13);
 
-        public static final double FLYWHEEL_kP = 0.0;
+        public static final double FLYWHEEL_kP = 0.007;
         public static final double FLYWHEEL_kI = 0.0;
-        public static final double FLYWHEEL_kD = 0.0;
+        public static final double FLYWHEEL_kD = 0.3;
         public static final double FLYWHEEL_kS = 0.1;
-        public static final double FLYWHEEL_kV = 2;
+        public static final double FLYWHEEL_kV = 0.2;
         public static final double FLYWHEEL_kA = 0.0;
         public static final double FLYWHEEL_MAX_ACCELERATION = 100;
         public static final int FLYWHEEL_CURRENT_LIMIT = 40;

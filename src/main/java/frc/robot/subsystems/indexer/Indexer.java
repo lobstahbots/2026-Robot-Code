@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Indexer extends SubsystemBase {
-    
+
     private final IndexerIO io;
     private final IndexerIOInputsAutoLogged inputs = new IndexerIOInputsAutoLogged();
 
@@ -21,6 +21,10 @@ public class Indexer extends SubsystemBase {
 
     public void setIndexerSpeed(double speed) {
         io.setIndexerSpeed(speed);
+    }
+
+    public void setFeederSpeed(double speed) {
+        io.setFeederSpeed(speed);
     }
 
     public void stopIndexerMotor() {
@@ -41,7 +45,14 @@ public class Indexer extends SubsystemBase {
         Logger.processInputs("Indexer", inputs);
     }
 
-    public Command spin() {
-        return runEnd(() -> io.setIndexerSpeed(1), io::stopIndexer);
+    public Command spindex() {
+        return runEnd(() -> {
+            io.setIndexerSpeed(1);
+            io.setFeederSpeed(1);
+        }, io::stopIndexer);
+    }
+
+    public Command feed() {
+        return runEnd(() -> io.setFeederSpeed(1), io::stopIndexer);
     }
 }

@@ -107,7 +107,7 @@ public class IntakeIOSparkMax implements IntakeIO {
         inputs.armPosition = Rotation2d.fromRotations(armEncoder.getPosition());
 
         inputs.rollerVelocity = rollerEncoder.getVelocity();
-        inputs.rollerAppliedVoltage = rollerMotor.getAppliedOutput() * armMotor.getBusVoltage();
+        inputs.rollerAppliedVoltage = rollerMotor.getAppliedOutput() * rollerMotor.getBusVoltage();
         inputs.rollerCurrentAmps = rollerMotor.getOutputCurrent();
         inputs.rollerTempCelcius = rollerMotor.getMotorTemperature();
     }

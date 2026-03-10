@@ -58,6 +58,8 @@ public interface IndexerIO {
 
     public default void setIndexerSpeed(double speed) {}
 
+    public default void setFeederSpeed(double speed) {}
+
     public default void stopIndexer() {}
     
     public default void setIdleMode(boolean isBrake) {}

@@ -13,6 +13,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Encoder;
 
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -29,6 +30,8 @@ public class ShooterIOSparkMax implements ShooterIO {
     private final SparkClosedLoopController hoodController;
     private final RelativeEncoder flywheelEncoder;
     private final RelativeEncoder hoodEncoder;
+    private final Encoder quadEncoder = new Encoder(0, 1);
+    private Rotation2d offset = Rotation2d.kZero;
 
     public ShooterIOSparkMax(int flywheelMotor1ID, int flywheelMotor2ID, int flywheelMotor3ID, int hoodMotorID) {
         this.flywheelMotor1 = new SparkMax(flywheelMotor1ID, MotorType.kBrushless);
@@ -72,6 +75,8 @@ public class ShooterIOSparkMax implements ShooterIO {
         hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
         hoodEncoder = hoodMotor.getEncoder();
         hoodController = hoodMotor.getClosedLoopController();
+
+        quadEncoder.setDistancePerPulse(1 / ShooterConstants.HERRINGBONE_RATIO / 2048);
     }
 
     public void setFlywheelVoltage(double voltage) {
@@ -90,6 +95,12 @@ public class ShooterIOSparkMax implements ShooterIO {
         hoodController.setSetpoint(position.getRotations(), ControlType.kMAXMotionPositionControl);
     }
 
+    public void resetEncoder(Rotation2d position) {
+        hoodEncoder.setPosition(position.getRotations());
+        quadEncoder.reset();
+        offset = position;
+    }
+
     public void updateInputs(ShooterIOInputs inputs) {
         inputs.flywheelVelocity = RotationsPerSecond.of(flywheelEncoder.getVelocity());
         inputs.flywheelAppliedVoltages[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
@@ -103,6 +114,7 @@ public class ShooterIOSparkMax implements ShooterIO {
         inputs.flywheelTemperatures[2] = flywheelMotor3.getMotorTemperature();
 
         inputs.hoodPosition = Rotation2d.fromRotations(hoodEncoder.getPosition());
+        inputs.encoderPosition = Rotation2d.fromRotations(quadEncoder.getDistance()).plus(offset);
         inputs.hoodVelocity = RotationsPerSecond.of(hoodEncoder.getVelocity());
         inputs.hoodAppliedVoltage = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
         inputs.hoodCurrent = hoodMotor.getOutputCurrent();

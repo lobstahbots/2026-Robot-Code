@@ -27,9 +27,11 @@ public class IndexerIOSparkMax implements IndexerIO {
         this.feederMotor = new SparkMax(feederMotorId, MotorType.kBrushless);
     
         SparkMaxConfig config = new SparkMaxConfig();
-        config.smartCurrentLimit(IndexerConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder.velocityConversionFactor(3);
+        config.smartCurrentLimit(IndexerConstants.SPINDEXER_CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder.velocityConversionFactor(3);
 
         indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        config.smartCurrentLimit(IndexerConstants.FEEDER_MOTOR_CURRENT_LIMIT).inverted(false);
         feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         encoder = indexerMotor.getEncoder();
@@ -38,6 +40,9 @@ public class IndexerIOSparkMax implements IndexerIO {
 
     public void setIndexerSpeed(double speed) {
         indexerMotor.set(speed);
+    }
+
+    public void setFeederSpeed(double speed) {
         feederMotor.set(speed);
     }
 
