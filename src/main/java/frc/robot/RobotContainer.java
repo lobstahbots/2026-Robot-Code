@@ -231,6 +231,8 @@ public class RobotContainer {
                                         "Dynamic Forward", CharacterizationRoutine.DYNAMIC_FORWARD, "Dynamic Backward",
                                         CharacterizationRoutine.DYNAMIC_BACKWARD))),
                 autoFactory::getCharacterizationRoutine);
+
+        autoChooser.addRoutine("Left Trench", List.of(), autoFactory::getLeftTrench);
     }
 
     public void displaySimField() {
