@@ -233,9 +233,9 @@ public class AutoFactory {
 
     public Command getLeftTrench() {
         PathPlannerPath go = getChoreoPath("leftTrench");
-        return AutoBuilder.resetOdom(go.getStartingDifferentialPose())
-                .andThen(AutoBuilder.followPath(go).deadlineFor(intake.spin())).andThen(indexer.spin())
-                .alongWith(shooter.operate(() -> Rotation2d.fromRotations(0.09), () -> RPM.of(1000)));
+        return shooter.zero().andThen(AutoBuilder.resetOdom(go.getStartingDifferentialPose())
+                .andThen(AutoBuilder.followPath(go).deadlineFor(intake.spin())).andThen(indexer.spindex())
+                .alongWith(shooter.operate(() -> Rotation2d.fromRotations(0.09), () -> RPM.of(1000))));
     }
 
     public static enum CharacterizationRoutine {

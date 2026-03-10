@@ -202,11 +202,10 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return shooter.zero();
-        // Command command = autoChooser.getCommand();
-        // if (Robot.isSimulation())
-        //     command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
-        // return command;
+        Command command = autoChooser.getCommand();
+        if (Robot.isSimulation())
+            command = Commands.runOnce(SimulatedArena.getInstance()::resetFieldForAuto).andThen(command);
+        return command;
     }
 
     public void configureButtonBindings() {
