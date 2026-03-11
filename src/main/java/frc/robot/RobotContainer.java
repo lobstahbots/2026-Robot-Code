@@ -14,6 +14,9 @@ import java.util.Map;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkInput;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -81,6 +84,9 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
 
     private SwerveDriveSimulation driveSimulation = null;
+
+    private LoggedNetworkNumber velocity = new LoggedNetworkNumber("Angular Velocity", 2500);
+    private LoggedNetworkNumber angle = new LoggedNetworkNumber("Angle", 0);
 
     private AngularVelocity shooterVel = RPM.of(2000);
 
@@ -212,18 +218,24 @@ public class RobotContainer {
         Controllers.driver.LBButton.whileTrue(intake.spin());
 
         Controllers.driver.RBButton.whileTrue(
-                shooter.velocity(() -> shooterVel).alongWith(new WaitCommand(1).andThen(indexer.spindex())));
-        Controllers.driver.RBButton.onFalse(shooter.velocity(() -> RPM.of(2500)).alongWith(indexer.feed()).withTimeout(1));
+                shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).alongWith(new WaitCommand(2.5).andThen(indexer.spindex())));
+        Controllers.driver.RBButton.onFalse(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).withTimeout(1).deadlineFor(indexer.feed()));
 
-        Controllers.driver.AButton.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(5)));
-        Controllers.driver.AButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2300)));
+        //Trench Setpoint
+        Controllers.driver.AButton.onTrue(shooter.hoodAngle(() -> Rotation2d.fromDegrees(30)));
+        Controllers.driver.AButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2700)));
+
+        //Flush agains hub setpoint
+        Controllers.driver.BButton.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(15)));
+        Controllers.driver.BButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2200)));
+        
 
         //Operator Test
         Controllers.operator.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
         Controllers.operator.leftPaddle.whileTrue(intake.spin());
         Controllers.operator.RBButton.whileTrue(indexer.spindex());
         Controllers.operator.rightPaddle.whileTrue(shooter.velocity(() -> RPM.of(2500)));
-    }
+    }   
 
     public boolean getOperatorConnected() {
         return Controllers.operator.isConnected();
@@ -246,6 +258,7 @@ public class RobotContainer {
                 autoFactory::getCharacterizationRoutine);
 
         autoChooser.addRoutine("Left Trench", List.of(), autoFactory::getLeftTrench);
+        autoChooser.addRoutine("Zero shooter", List.of(), shooter::zero);
     }
 
     public void displaySimField() {
