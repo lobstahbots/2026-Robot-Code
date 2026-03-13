@@ -82,10 +82,14 @@ public class Shooter extends SubsystemBase {
      * @return The constructed command.
      */
     public Command operate(Supplier<Rotation2d> hoodAngle, Supplier<AngularVelocity> flywheelVelocity) {
-        return run(() -> {
+        return runEnd(() -> {
             io.setHoodPosition(hoodAngle.get());
             io.setFlywheelVelocity(flywheelVelocity.get());
-        });
+        }, () -> {
+            io.setHoodPosition(inputs.hoodPosition);
+            io.setFlywheelVoltage(0);
+        }
+        );
     }
 
     /**
@@ -102,7 +106,8 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command zero() {
-        return runEnd(() -> io.setHoodVoltage(-10), () -> io.resetEncoder(ShooterConstants.MIN_ANGLE))
-                .finallyDo(() -> io.setHoodVoltage(0)).raceWith(new WaitCommand(0.1).andThen(Commands.idle().until(() -> inputs.hoodCurrent > 25)));
+        return runEnd(() -> io.setHoodVoltage(-10), () -> io.setHoodVoltage(0))
+                .raceWith(new WaitCommand(0.1).andThen(Commands.idle().until(() -> inputs.hoodCurrent > 25)))
+                .andThen(Commands.waitSeconds(0.05).andThen(() -> io.resetEncoder(ShooterConstants.MIN_ANGLE)));
     }
 }
