@@ -466,7 +466,7 @@ public final class Constants {
         public static final int FLYWHEEL2_ID = 42;
         public static final int FLYWHEEL3_ID = 43;
 
-        public static final double FLYWHEEL_GEAR_RATIO = (16 / 14.0) * (15 / 30.0);
+        public static final double FLYWHEEL_GEAR_RATIO = (16 / 12.0) * (26 / 30.0);
         public static final double MAXPLANETARY_RATIO = 3;
         public static final double HERRINGBONE_RATIO = 158 / 10.0;
         public static final double HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * HERRINGBONE_RATIO;
