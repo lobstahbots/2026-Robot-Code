@@ -11,6 +11,7 @@ public interface ShooterIO {
     @AutoLog
     public static class ShooterIOInputs {
         public AngularVelocity flywheelVelocity = RotationsPerSecond.of(0);
+        public AngularVelocity flywheelSetpoint = RotationsPerSecond.of(0);
         public double[] flywheelAppliedVoltages = new double[3];
         public double[] flywheelCurrents = new double[3];
         public double[] flywheelTemperatures = new double[3];

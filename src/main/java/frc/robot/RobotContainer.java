@@ -215,19 +215,22 @@ public class RobotContainer {
     }
 
     public void configureButtonBindings() {
-        Controllers.driver.LBButton.whileTrue(intake.spin());
+        //intake
+        Controllers.driver.LTButton.whileTrue(intake.spin());
+        //Controllers.operator.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
 
-        Controllers.driver.RBButton.whileTrue(
+        //Shoot
+        Controllers.driver.RTButton.whileTrue(
                 shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).alongWith(new WaitCommand(2.5).andThen(indexer.spindex())));
-        Controllers.driver.RBButton.onFalse(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).withTimeout(1).deadlineFor(indexer.feed()));
+        Controllers.driver.RTButton.onFalse(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).withTimeout(1).deadlineFor(indexer.feed()));
 
-        //Trench Setpoint
-        Controllers.driver.AButton.onTrue(shooter.hoodAngle(() -> Rotation2d.fromDegrees(30)));
-        Controllers.driver.AButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2700)));
+        //Trench Setpoint TODO: Redo
+        Controllers.driver.leftPaddle.onTrue(shooter.hoodAngle(() -> Rotation2d.fromDegrees(30)));
+        Controllers.driver.leftPaddle.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2700)));
 
-        //Flush agains hub setpoint
-        Controllers.driver.BButton.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(15)));
-        Controllers.driver.BButton.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2200)));
+        //Flush agains hub setpoint TODO: Redo
+        Controllers.driver.rightPaddle.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(15)));
+        Controllers.driver.rightPaddle.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2200)));
         
 
         //Operator Test

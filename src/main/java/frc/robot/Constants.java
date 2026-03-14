@@ -483,16 +483,16 @@ public final class Constants {
         public static final double HOOD_ALLOWED_PROFILE_ERROR = 0.4; // rotations
         public static final int HOOD_CURRENT_LIMIT = 30;
 
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromRotations(-0.063);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromRadians(-0.193);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromRotations(0.13);
 
-        public static final double FLYWHEEL_kP = 0.009;
-        public static final double FLYWHEEL_kI = 0.0;
-        public static final double FLYWHEEL_kD = 0.3;
-        public static final double FLYWHEEL_kS = 0.1;
-        public static final double FLYWHEEL_kV = 0.2;
-        public static final double FLYWHEEL_kA = 0.0;
-        public static final double FLYWHEEL_MAX_ACCELERATION = 100;
+        public static final double FLYWHEEL_kP = 0.009 / 60;
+        public static final double FLYWHEEL_kI = 0.0 / 60;
+        public static final double FLYWHEEL_kD = 0.3 / 60;
+        public static final double FLYWHEEL_kS = 0.1 / 60;
+        public static final double FLYWHEEL_kV = 1 / 473;
+        public static final double FLYWHEEL_kA = 0.0 / 60;
+        public static final double FLYWHEEL_MAX_ACCELERATION = 100 * 60;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
     }
 

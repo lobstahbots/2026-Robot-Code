@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.revrobotics.RelativeEncoder;
@@ -43,7 +44,7 @@ public class ShooterIOSparkMax implements ShooterIO {
         flywheelConfig.smartCurrentLimit(ShooterConstants.FLYWHEEL_CURRENT_LIMIT).idleMode(IdleMode.kCoast)
                 .inverted(true);
         flywheelConfig.encoder.positionConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO)
-                .velocityConversionFactor(1 / 60.0 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
+                .velocityConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
                 .quadratureMeasurementPeriod(10);
         flywheelConfig.closedLoop
                 .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD)
@@ -88,7 +89,7 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
-        flywheelController.setSetpoint(velocity.in(RotationsPerSecond), ControlType.kMAXMotionVelocityControl);
+        flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl);
     }
 
     public void setHoodPosition(Rotation2d position) {
@@ -102,7 +103,8 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     public void updateInputs(ShooterIOInputs inputs) {
-        inputs.flywheelVelocity = RotationsPerSecond.of(flywheelEncoder.getVelocity());
+        inputs.flywheelVelocity = RPM.of(flywheelEncoder.getVelocity());
+        inputs.flywheelSetpoint = RPM.of(flywheelController.getMAXMotionSetpointVelocity());
         inputs.flywheelAppliedVoltages[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
         inputs.flywheelAppliedVoltages[1] = flywheelMotor2.getAppliedOutput() * flywheelMotor2.getBusVoltage();
         inputs.flywheelAppliedVoltages[2] = flywheelMotor3.getAppliedOutput() * flywheelMotor3.getBusVoltage();
