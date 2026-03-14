@@ -489,8 +489,8 @@ public final class Constants {
         public static final double FLYWHEEL_kP = 0.009 / 60;
         public static final double FLYWHEEL_kI = 0.0 / 60;
         public static final double FLYWHEEL_kD = 0.3 / 60;
-        public static final double FLYWHEEL_kS = 0.1 / 60;
-        public static final double FLYWHEEL_kV = 1 / 473;
+        public static final double FLYWHEEL_kS = 0.0976328;
+        public static final double FLYWHEEL_kV = 0.00243482;
         public static final double FLYWHEEL_kA = 0.0 / 60;
         public static final double FLYWHEEL_MAX_ACCELERATION = 100 * 60;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
