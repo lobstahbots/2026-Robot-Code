@@ -57,7 +57,8 @@ public final class Constants {
     // DO NOT EDIT
     private static final RobotType trueRobotType = RuntimeType
             .getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? robotType
-                    : robotType == RobotType.SIM_BASIC || robotType == RobotType.SIM_ADVANCED ? RobotType.COMP : robotType;
+                    : robotType == RobotType.SIM_BASIC || robotType == RobotType.SIM_ADVANCED ? RobotType.COMP
+                            : robotType;
 
     public static final RobotType getRobot() {
         return trueRobotType;
@@ -67,7 +68,8 @@ public final class Constants {
         REAL, REPLAY, SIM
     }
 
-    private static final RobotMode robotMode = getRobot() == RobotType.SIM_BASIC || getRobot() == RobotType.SIM_ADVANCED ? RobotMode.SIM
+    private static final RobotMode robotMode = getRobot() == RobotType.SIM_BASIC || getRobot() == RobotType.SIM_ADVANCED
+            ? RobotMode.SIM
             : RuntimeType.getValue(HALUtil.getHALRuntimeType()) == RuntimeType.kSimulation ? RobotMode.REPLAY
                     : RobotMode.REAL;
 
@@ -397,13 +399,29 @@ public final class Constants {
         public static final PoseStrategy POSE_STRATEGY = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
         public static final Map<String, Transform3d> WAFFLE_CAMERA_TRANSFORMS = new HashMap<>();
         static {
-            WAFFLE_CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42), Inches.of(7.308),
-                    new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(-35))));
-            WAFFLE_CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42), Inches.of(7.164),
-                    new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(35))));
+            WAFFLE_CAMERA_TRANSFORMS.put("frontleft", new Transform3d(Inches.of(11.2435), Inches.of(13.42),
+                    Inches.of(7.308), new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(-35))));
+            WAFFLE_CAMERA_TRANSFORMS.put("frontright", new Transform3d(Inches.of(11.2435), Inches.of(-13.42),
+                    Inches.of(7.164), new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(35))));
         }
         public static final Map<String, Transform3d> COMP_CAMERA_TRANSFORMS = new HashMap<>();
-        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = getRobot() == RobotType.WAFFLE ? WAFFLE_CAMERA_TRANSFORMS : COMP_CAMERA_TRANSFORMS;
+        static {
+            COMP_CAMERA_TRANSFORMS.put("left",
+                    new Transform3d(Inches.of(-9.922), Inches.of(13.016), Inches.of(20.516),
+                            new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(155)))));
+            COMP_CAMERA_TRANSFORMS.put("center",
+                    new Transform3d(Inches.of(-7.000), Inches.of(15.837), Inches.of(20.513),
+                            new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(90)))));
+            COMP_CAMERA_TRANSFORMS.put("right",
+                    new Transform3d(Inches.of(-1.385), Inches.of(14.387), Inches.of(20.392),
+                            new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(25)))));
+        }
+        public static final Map<String, Transform3d> CAMERA_TRANSFORMS = getRobot() == RobotType.WAFFLE
+                ? WAFFLE_CAMERA_TRANSFORMS
+                : COMP_CAMERA_TRANSFORMS;
         public static final double VISION_ODOMETRY_DIFFERENCE_FILTER_THRESHOLD = 5;
         public static final int CAMERA_RES_WIDTH = 1280;
         public static final int CAMERA_RES_HEIGHT = 960;
@@ -555,7 +573,7 @@ public final class Constants {
         public static final double ALIGNED_ANGLE = 2; // Degrees
     }
 
-        public static class RobotConstants {
+    public static class RobotConstants {
         public static final double WHEELBASE;
         public static final double TRACK_WIDTH;
         public static final double EDGE_TO_MODULE_CENTER;
