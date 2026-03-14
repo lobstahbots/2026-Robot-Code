@@ -4,8 +4,10 @@
 
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -17,14 +19,20 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.math.ShotData;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase {
     private final ShooterIO io;
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
+    private AngularVelocity setpoint;
+
+    public Trigger atSpeed;
 
     public Shooter(ShooterIO io) {
         this.io = io;
+        atSpeed = new Trigger(() -> inputs.flywheelVelocity.minus(setpoint).lt(RPM.of(20))
+                && inputs.flywheelVelocity.minus(setpoint).gt(RPM.of(-20)));
     }
 
     /**
@@ -64,7 +72,7 @@ public class Shooter extends SubsystemBase {
 
     public Command velocity(Supplier<AngularVelocity> velocity) {
         return runEnd(() -> io.setFlywheelVelocity(velocity.get()),
-                () -> io.setFlywheelVelocity(RotationsPerSecond.of(0)));
+                () -> io.setFlywheelVelocity(setpoint = RotationsPerSecond.of(0)));
     }
 
     public Command voltage(double voltage) {
@@ -84,12 +92,11 @@ public class Shooter extends SubsystemBase {
     public Command operate(Supplier<Rotation2d> hoodAngle, Supplier<AngularVelocity> flywheelVelocity) {
         return runEnd(() -> {
             io.setHoodPosition(hoodAngle.get());
-            io.setFlywheelVelocity(flywheelVelocity.get());
+            io.setFlywheelVelocity(setpoint = flywheelVelocity.get());
         }, () -> {
             io.setHoodPosition(inputs.hoodPosition);
             io.setFlywheelVoltage(0);
-        }
-        );
+        });
     }
 
     /**
@@ -102,7 +109,7 @@ public class Shooter extends SubsystemBase {
      * @see ShotData
      */
     public Command operate(Supplier<ShotData> shotData) {
-        return operate(() -> shotData.get().hoodPosition(), () -> shotData.get().flywheelVelocity());
+        return operate(() -> shotData.get().hoodPosition(), () -> setpoint = shotData.get().flywheelVelocity());
     }
 
     public Command zero() {

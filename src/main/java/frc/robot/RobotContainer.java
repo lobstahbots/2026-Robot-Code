@@ -70,6 +70,7 @@ import frc.robot.util.auto.AutonSelector;
 import frc.robot.util.auto.AutonSelector.AutoQuestion;
 import frc.robot.util.command.CycleCommand;
 import frc.robot.util.led.LEDs;
+import frc.robot.util.math.ShotData;
 
 public class RobotContainer {
     private final LEDs leds;
@@ -215,30 +216,30 @@ public class RobotContainer {
     }
 
     public void configureButtonBindings() {
-        //intake
-        Controllers.driver.LTButton.whileTrue(intake.spin());
-        //Controllers.operator.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.driver.LBButton.whileTrue(intake.spin());
 
         //Shoot
-        Controllers.driver.RTButton.whileTrue(
-                shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).alongWith(new WaitCommand(2.5).andThen(indexer.spindex())));
-        Controllers.driver.RTButton.onFalse(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())).withTimeout(1).deadlineFor(indexer.feed()));
+        Controllers.driver.RTButton
+                .onTrue(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())));
+        Controllers.driver.RTButton.and(shooter.atSpeed).whileTrue(indexer.spindex());
+        Controllers.driver.RTButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
 
-        //Trench Setpoint TODO: Redo
-        Controllers.driver.leftPaddle.onTrue(shooter.hoodAngle(() -> Rotation2d.fromDegrees(30)));
-        Controllers.driver.leftPaddle.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2700)));
-
-        //Flush agains hub setpoint TODO: Redo
-        Controllers.driver.rightPaddle.onTrue(shooter.hoodAngle(() -> Rotation2d.k180deg.div(15)));
-        Controllers.driver.rightPaddle.onTrue(Commands.runOnce(() -> shooterVel = RPM.of(2200)));
-        
-
+        Command updateCommand = Commands.run(() -> {
+            var data = ShotData.getShotData(driveBase.getPose());
+            angle.set(data.hoodPosition().getDegrees());
+            velocity.set(data.flywheelVelocity().in(RPM));
+        });
         //Operator Test
-        Controllers.operator.LBButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.operator.YButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.operator.XButton.onTrue(Commands.runOnce(() -> {
+            angle.set(ShotData.getShotData(0.1).hoodPosition().getDegrees());
+            velocity.set(ShotData.getShotData(0.1).flywheelVelocity().in(RPM));
+            updateCommand.cancel();
+        }));
         Controllers.operator.leftPaddle.whileTrue(intake.spin());
         Controllers.operator.RBButton.whileTrue(indexer.spindex());
-        Controllers.operator.rightPaddle.whileTrue(shooter.velocity(() -> RPM.of(2500)));
-    }   
+        Controllers.operator.LBButton.onTrue(updateCommand);
+    }
 
     public boolean getOperatorConnected() {
         return Controllers.operator.isConnected();

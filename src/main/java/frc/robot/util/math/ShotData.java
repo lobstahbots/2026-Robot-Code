@@ -84,6 +84,10 @@ public record ShotData(AngularVelocity flywheelVelocity, Rotation2d hoodPosition
                 .getDistance(FieldConstants.Hub.innerCenterPoint.toTranslation2d())));
     }
 
+    public static final ShotData getShotData(double distance) {
+        return shotMap.get(Meters.of(distance));
+    }
+
     public static final InterpolatingTreeMap<Distance, ShotData> passMap = new InterpolatingTreeMap<>(
             ShotData::inverseInterpolate, ShotData::interpolate);
 
