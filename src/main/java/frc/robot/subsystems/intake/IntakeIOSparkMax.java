@@ -13,7 +13,9 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 import com.revrobotics.spark.config.FeedForwardConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
@@ -30,6 +32,10 @@ public class IntakeIOSparkMax implements IntakeIO {
     private final RelativeEncoder rollerEncoder;
 
     private final SparkClosedLoopController armController;
+
+    private final ProfiledPIDController controller = new ProfiledPIDController(IntakeConstants.kP, IntakeConstants.kI,
+            IntakeConstants.kD,
+            new TrapezoidProfile.Constraints(IntakeConstants.CRUISE_VELOCITY, IntakeConstants.MAX_ACCELERATION));
 
     public IntakeIOSparkMax(int armMotorID, int rollerMotorID) {
         this.armMotor = new SparkMax(armMotorID, MotorType.kBrushless);
@@ -48,14 +54,13 @@ public class IntakeIOSparkMax implements IntakeIO {
                 .apply(new FeedForwardConfig().svacr(IntakeConstants.kS, IntakeConstants.kV, IntakeConstants.kA,
                         IntakeConstants.kG, 1))
                 .apply(new MAXMotionConfig().cruiseVelocity(IntakeConstants.CRUISE_VELOCITY)
-                        .maxAcceleration(IntakeConstants.MAX_ACCELERATION)
-                        .allowedProfileError(IntakeConstants.ALLOWED_PROFILE_ERROR));
+                        .maxAcceleration(IntakeConstants.MAX_ACCELERATION));
         armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         armEncoder = armMotor.getEncoder();
         armController = armMotor.getClosedLoopController();
         rollerEncoder = rollerMotor.getEncoder();
-        
+
         resetEncoder(IntakeConstants.STOWED);
     }
 
@@ -76,7 +81,7 @@ public class IntakeIOSparkMax implements IntakeIO {
     }
 
     public void setArmPosition(Rotation2d position) {
-        armController.setSetpoint(position.getRotations(), ControlType.kMAXMotionPositionControl);
+        controller.setGoal(new TrapezoidProfile.State(position.getRotations(), 0));
     }
 
     public void setRollerSpeed(double speed) {
@@ -100,6 +105,7 @@ public class IntakeIOSparkMax implements IntakeIO {
     }
 
     public void updateInputs(IntakeIOInputs inputs) {
+        armMotor.setVoltage(controller.calculate(armEncoder.getPosition()));
         inputs.armVelocity = armEncoder.getVelocity();
         inputs.armAppliedVoltage = armMotor.getAppliedOutput() * armMotor.getBusVoltage();
         inputs.armCurrentAmps = armMotor.getOutputCurrent();
@@ -113,4 +119,3 @@ public class IntakeIOSparkMax implements IntakeIO {
     }
 
 }
-
