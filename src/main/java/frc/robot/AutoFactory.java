@@ -30,7 +30,9 @@ import frc.robot.subsystems.drive.DriveBase;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.util.math.ShotData;
 import frc.robot.util.sysId.CharacterizableSubsystem;
+import frc.robot.util.trajectory.AlliancePoseMirror;
 
 public class AutoFactory {
     private final Supplier<List<Object>> responses;
@@ -233,9 +235,40 @@ public class AutoFactory {
 
     public Command getLeftTrench() {
         PathPlannerPath go = getChoreoPath("leftTrench");
-        return shooter.zero().andThen(AutoBuilder.resetOdom(go.getStartingDifferentialPose())
-                .andThen(AutoBuilder.followPath(go).deadlineFor(intake.spin())).andThen(indexer.spindex())
-                .alongWith(shooter.operate(() -> Rotation2d.fromRotations(0.09), () -> RPM.of(1000))));
+        return shooter.zero()
+                .andThen(AutoBuilder.resetOdom(go.getStartingDifferentialPose())
+                        .andThen(AutoBuilder.followPath(go).deadlineFor(intake.spin())).andThen(indexer.spindex())
+                        .alongWith(shooter.operate(() -> Rotation2d.fromRotations(0.09), () -> RPM.of(1000))));
+    }
+
+    public Command shoot() {
+        return shooter.operate(() -> ShotData.getShotData(driveBase.getPose()))
+                .alongWith(driveBase.joystickDrive(() -> 0, () -> 0, () -> 0, true))
+                .until(() -> indexer.getIndexerSpeed() >= 6000);
+    }
+
+    public Command disrupt(String side) {
+        if (!"left".equals(side) && !"right".equals(side)) {
+            side = AlliancePoseMirror.mirrorPose2d(driveBase.getPose()).getY() > FieldConstants.fieldWidth / 2 ? "left"
+                    : "right";
+        }
+        PathPlannerPath path = getChoreoPath("disrupt_" + side);
+        return AutoBuilder.followPath(path).alongWith(shooter.zero())
+                .deadlineFor(intake.deploy().andThen(intake.spin())).andThen(driveBase.stopOnce()).andThen(shoot());
+    }
+
+    public Command swipe(String side) {
+        if (!"left".equals(side) && !"right".equals(side)) {
+            side = AlliancePoseMirror.mirrorPose2d(driveBase.getPose()).getY() > FieldConstants.fieldWidth / 2 ? "left"
+                    : "right";
+        }
+        PathPlannerPath swipe1 = getChoreoPath("swipe_" + side, 0);
+        PathPlannerPath swipe2 = getChoreoPath("swipe_" + side, 1);
+        return AutoBuilder.followPath(swipe1).alongWith(shooter.zero())
+                .deadlineFor(intake.deploy().andThen(intake.spin())).andThen(driveBase.stopOnce()).andThen(shoot())
+                .andThen(AutoBuilder.followPath(swipe2).alongWith(shooter.zero())
+                        .deadlineFor(intake.deploy().andThen(intake.spin())).andThen(driveBase.stopOnce())
+                        .andThen(shoot()));
     }
 
     public static enum CharacterizationRoutine {
