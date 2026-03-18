@@ -3,8 +3,80 @@
  "version":2,
  "type":"Swerve",
  "variables":{
-  "expressions":{},
-  "poses":{}
+  "expressions":{
+   "BUMPER":{
+    "dimension":"Length",
+    "var":{
+     "exp":"3.75 in",
+     "val":0.09525
+    }
+   },
+   "FIELD_WIDTH":{
+    "dimension":"Length",
+    "var":{
+     "exp":"317.7 in",
+     "val":8.06958
+    }
+   },
+   "START_X":{
+    "dimension":"Length",
+    "var":{
+     "exp":"158.6 in + WHEELBASE / 2 + BUMPER",
+     "val":4.42849
+    }
+   },
+   "TRACK_WIDTH":{
+    "dimension":"Length",
+    "var":{
+     "exp":"30 in",
+     "val":0.762
+    }
+   },
+   "TRENCH_WIDTH":{
+    "dimension":"Length",
+    "var":{
+     "exp":"50.34 in",
+     "val":1.278636
+    }
+   },
+   "WHEELBASE":{
+    "dimension":"Length",
+    "var":{
+     "exp":"24 in",
+     "val":0.6095999999999999
+    }
+   }
+  },
+  "poses":{
+   "START_LEFT":{
+    "x":{
+     "exp":"START_X",
+     "val":4.42849
+    },
+    "y":{
+     "exp":"FIELD_WIDTH - TRENCH_WIDTH / 2",
+     "val":7.430262000000001
+    },
+    "heading":{
+     "exp":"180 deg",
+     "val":3.141592653589793
+    }
+   },
+   "START_RIGHT":{
+    "x":{
+     "exp":"START_X",
+     "val":4.42849
+    },
+    "y":{
+     "exp":"TRENCH_WIDTH / 2",
+     "val":0.639318
+    },
+    "heading":{
+     "exp":"180 deg",
+     "val":3.141592653589793
+    }
+   }
+  }
  },
  "config":{
   "frontLeft":{
@@ -44,8 +116,8 @@
    "val":0.038099999999999995
   },
   "vmax":{
-   "exp":"6000 RPM",
-   "val":628.3185307179587
+   "exp":"5675 RPM",
+   "val":594.2846103040691
   },
   "tmax":{
    "exp":"0.8 N * m",
