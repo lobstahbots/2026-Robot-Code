@@ -25,14 +25,14 @@ import frc.robot.Constants.ShooterConstants;
 public class Shooter extends SubsystemBase {
     private final ShooterIO io;
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
-    private AngularVelocity setpoint;
+    private AngularVelocity setpoint = RPM.of(100000);
 
     public Trigger atSpeed;
 
     public Shooter(ShooterIO io) {
         this.io = io;
-        atSpeed = new Trigger(() -> inputs.flywheelVelocity.minus(setpoint).lt(RPM.of(20))
-                && inputs.flywheelVelocity.minus(setpoint).gt(RPM.of(-20)));
+        atSpeed = new Trigger(() -> inputs.flywheelVelocity.minus(setpoint).lt(RPM.of(150))
+                && inputs.flywheelVelocity.minus(setpoint).gt(RPM.of(-150))).debounce(0.05);
     }
 
     /**

@@ -47,7 +47,7 @@ public class Indexer extends SubsystemBase {
 
     public Command spindex() {
         return runEnd(() -> {
-            io.setIndexerSpeed(1);
+            io.setIndexerSpeed(0.5);
             io.setFeederSpeed(0.75);
         }, io::stopIndexer);
     }

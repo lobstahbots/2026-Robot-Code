@@ -6,10 +6,12 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -27,6 +29,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.AutoFactory.CharacterizationRoutine;
@@ -86,8 +89,7 @@ public class RobotContainer {
 
     private SwerveDriveSimulation driveSimulation = null;
 
-    private LoggedNetworkNumber velocity = new LoggedNetworkNumber("Angular Velocity", 2500);
-    private LoggedNetworkNumber angle = new LoggedNetworkNumber("Angle", 0);
+    private ShotData shotData = new ShotData(RPM.of(0), Rotation2d.kZero, null);
 
     private AngularVelocity shooterVel = RPM.of(2000);
 
@@ -219,26 +221,28 @@ public class RobotContainer {
         Controllers.driver.LBButton.whileTrue(intake.spin());
 
         //Shoot
-        Controllers.driver.RTButton
-                .onTrue(shooter.operate(() -> Rotation2d.fromDegrees(angle.get()), () -> RPM.of(velocity.get())));
-        Controllers.driver.RTButton.and(shooter.atSpeed).whileTrue(indexer.spindex());
+        Controllers.driver.RTButton.onTrue(shooter.operate(() -> ShotData.getShotData(driveBase.getPose())))
+                .whileTrue(driveBase.joystickDrive(
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
+                        () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL), true));
+        Controllers.driver.RBButton.onTrue(shooter.operate(() -> shotData));
+        Controllers.driver.LTButton.onTrue(shooter.operate(() -> new ShotData(RPM.of(4000), Rotation2d.fromDegrees(48), Seconds.of(1))));
+        Controllers.driver.RTButton.or(DriverStation::isAutonomousEnabled).or(Controllers.driver.RBButton).or(Controllers.driver.LTButton)
+                .and(shooter.atSpeed).whileTrue(indexer.spindex());
         Controllers.driver.RTButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
+        Controllers.driver.RBButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
+        Controllers.driver.LTButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
 
-        Command updateCommand = Commands.run(() -> {
-            var data = ShotData.getShotData(driveBase.getPose());
-            angle.set(data.hoodPosition().getDegrees());
-            velocity.set(data.flywheelVelocity().in(RPM));
-        });
         //Operator Test
-        Controllers.operator.YButton.onTrue(new CycleCommand(intake.deploy(), intake.stow()));
+        Controllers.operator.YButton.onTrue(intake.deploy());
+        Controllers.operator.AButton.onTrue(intake.stow());
         Controllers.operator.XButton.onTrue(Commands.runOnce(() -> {
-            angle.set(ShotData.getShotData(0.1).hoodPosition().getDegrees());
-            velocity.set(ShotData.getShotData(0.1).flywheelVelocity().in(RPM));
-            updateCommand.cancel();
+            shotData = ShotData.getShotData(1);
         }));
         Controllers.operator.leftPaddle.whileTrue(intake.spin());
         Controllers.operator.RBButton.whileTrue(indexer.spindex());
-        Controllers.operator.LBButton.onTrue(updateCommand);
+        Controllers.operator.LBButton.onTrue(shooter.operate(() -> shotData));
     }
 
     public boolean getOperatorConnected() {
@@ -263,6 +267,8 @@ public class RobotContainer {
 
         autoChooser.addRoutine("Left Trench", List.of(), autoFactory::getLeftTrench);
         autoChooser.addRoutine("Zero shooter", List.of(), shooter::zero);
+        autoChooser.addRoutine("Shoot", List.of(),
+                () -> shooter.zero().andThen(shooter.operate(() -> ShotData.getShotData(1.))));
     }
 
     public void displaySimField() {

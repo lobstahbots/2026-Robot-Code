@@ -306,7 +306,7 @@ public final class Constants {
                             DRIVE_MOTOR_CURRENT_LIMIT, // current limit for drive motors
                             1 // number of drive motors per module
                     ), MODULE_LOCATIONS);
-            public static final PIDConstants ROTATION_PID_CONSTANTS = new PIDConstants(10, 0.0, 0);
+            public static final PIDConstants ROTATION_PID_CONSTANTS = new PIDConstants(0.1, 0.0, 0);
             public static final PIDConstants TRANSLATION_PID_CONSTANTS = new PIDConstants(7, 0.01, 0.15);
 
             public static final double AUTO_ALIGN_TRANSLATION_kP = 5;
@@ -447,12 +447,12 @@ public final class Constants {
     }
 
     public static class IntakeConstants {
-        public static final int CURRENT_LIMIT = 30;
+        public static final int CURRENT_LIMIT = 100;
         public static final double ARM_DEPLOY_SPEED = 1.0;
         public static final double ARM_DEPLOY_CURRENT_THRESHOLD = 20;
         public static final double GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0);
 
-        public static final double kP = 0.1;
+        public static final double kP = 50;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
         public static final double kS = 0.0;
@@ -463,9 +463,9 @@ public final class Constants {
         public static final double MAX_ACCELERATION = 30.0;
         public static final double ALLOWED_PROFILE_ERROR = 0.4; // rotations
 
-        public static final Rotation2d DEPLOYED = Rotation2d.kZero;
-        public static final Rotation2d STOWED = Rotation2d.kCW_90deg;
-        public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(2);
+        public static final Rotation2d DEPLOYED = Rotation2d.fromRadians(0.855);
+        public static final Rotation2d STOWED = Rotation2d.kZero;
+        public static final Rotation2d MAX_ERROR = Rotation2d.fromDegrees(3);
 
         public static final int ARM_ID = 20;
         public static final int ROLLER_ID = 21;
@@ -504,13 +504,13 @@ public final class Constants {
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromRadians(-0.193);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromRotations(0.13);
 
-        public static final double FLYWHEEL_kP = 0.009 / 60;
+        public static final double FLYWHEEL_kP = 0.00025;
         public static final double FLYWHEEL_kI = 0.0 / 60;
-        public static final double FLYWHEEL_kD = 0.3 / 60;
+        public static final double FLYWHEEL_kD = 0.03;
         public static final double FLYWHEEL_kS = 0.0976328;
         public static final double FLYWHEEL_kV = 0.00243482;
         public static final double FLYWHEEL_kA = 0.0 / 60;
-        public static final double FLYWHEEL_MAX_ACCELERATION = 100 * 60;
+        public static final double FLYWHEEL_MAX_ACCELERATION = 8000;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
     }
 

@@ -106,6 +106,8 @@ public class DriveBase extends CharacterizableSubsystem {
         yController.setTolerance(0.02);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
+        SmartDashboard.putData("rotation controller", thetaController);
+
         this.isOpenLoop = isOpenLoop;
         this.resetPose(getPose());
     }
@@ -291,7 +293,7 @@ public class DriveBase extends CharacterizableSubsystem {
             if (estimatedPose.pose().isPresent()
                     && (hasSeenTag == false
                             || LobstahMath.getDistBetweenPoses(estimatedPose.pose().get().toPose2d(), getPose()) <= 8)
-                    && Math.abs(estimatedPose.pose().get().getZ()) < 0.1 && (camera.getName().startsWith("front"))) {
+                    && Math.abs(estimatedPose.pose().get().getZ()) < 0.3) {
                 if (hasSeenTag == false) {
                     resetPose(new Pose2d(estimatedPose.pose().get().getX(), estimatedPose.pose().get().getY(),
                             getGyroAngle()));
@@ -418,14 +420,14 @@ public class DriveBase extends CharacterizableSubsystem {
             Translation2d linearVelocity = new Pose2d(new Translation2d(), linearDirection)
                     .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d())).getTranslation();
 
+            if (assist) {
+                Translation2d targetPose = AlliancePoseMirror.mirrorTranslation2d(FieldConstants.Hub.innerCenterPoint.toTranslation2d());
+                Rotation2d targetAngle = targetPose.minus(getPose().getTranslation()).getAngle();
+                omega = thetaController.calculate(getPose().getRotation().plus(Rotation2d.kCCW_Pi_2).getRadians(), targetAngle.getRadians());
+            }
+
             ChassisSpeeds chassisSpeeds = new ChassisSpeeds(linearVelocity.getX() * DriveConstants.MAX_DRIVE_SPEED,
                     linearVelocity.getY() * DriveConstants.MAX_DRIVE_SPEED, omega * DriveConstants.MAX_ANGULAR_SPEED);
-
-            if (assist) {
-                ChassisSpeeds trenchAssist = DriveAssist.trenchAssist(chassisSpeeds, getPose());
-                Logger.recordOutput("Trench Asist", trenchAssist);
-                chassisSpeeds = chassisSpeeds.plus(trenchAssist);
-            }
 
             driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(chassisSpeeds, getPose().getRotation()));
         }).finallyDo(this::stopMotors);
