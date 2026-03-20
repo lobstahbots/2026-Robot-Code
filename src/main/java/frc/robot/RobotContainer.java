@@ -211,9 +211,10 @@ public class RobotContainer {
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL), true));
-        Controllers.driver.LTButton.onTrue(shooter.operate(() -> new ShotData(RPM.of(4000), Rotation2d.fromDegrees(48), Seconds.of(1))));
-        Controllers.driver.RTButton.or(DriverStation::isAutonomousEnabled).or(Controllers.driver.RBButton).or(Controllers.driver.LTButton)
-                .and(shooter.atSpeed).whileTrue(indexer.spindex());
+        Controllers.driver.LTButton
+                .onTrue(shooter.operate(() -> new ShotData(RPM.of(4000), Rotation2d.fromDegrees(48), Seconds.of(1))));
+        Controllers.driver.RTButton.or(DriverStation::isAutonomousEnabled).or(Controllers.driver.RBButton)
+                .or(Controllers.driver.LTButton).and(shooter.atSpeed).whileTrue(indexer.spindex());
         Controllers.driver.RTButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
         Controllers.driver.RBButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
         Controllers.driver.LTButton.onFalse(indexer.feed().withTimeout(1).andThen(shooter.idle()));
@@ -245,7 +246,10 @@ public class RobotContainer {
                                         CharacterizationRoutine.DYNAMIC_BACKWARD))),
                 autoFactory::getCharacterizationRoutine);
 
-        autoChooser.addRoutine("Left Trench", List.of(), autoFactory::getLeftTrench);
+        autoChooser.addRoutine("Disrupt", List.of(new AutoQuestion<>("Which Side", List.of("left", "right"))),
+                autoFactory.call(autoFactory::disrupt));
+        autoChooser.addRoutine("Double Swipe", List.of(new AutoQuestion<>("Which Side?", List.of("left"))),
+                autoFactory.call(autoFactory::swipe));
         autoChooser.addRoutine("Zero shooter", List.of(), shooter::zero);
         autoChooser.addRoutine("Shoot", List.of(),
                 () -> shooter.zero().andThen(shooter.operate(() -> ShotData.getShotData(1.))));

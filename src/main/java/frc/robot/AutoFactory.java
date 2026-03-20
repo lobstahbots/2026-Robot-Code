@@ -2,6 +2,7 @@ package frc.robot;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -231,6 +232,10 @@ public class AutoFactory {
 
     public Command getLeaveAuto() {
         return driveBase.relativeDrive(0.2, 0, 0).withTimeout(3);
+    }
+
+    public Supplier<Command> call(Function<String, Command> func) {
+        return () -> func.apply((String) responses.get().get(0));
     }
 
     public Command getLeftTrench() {

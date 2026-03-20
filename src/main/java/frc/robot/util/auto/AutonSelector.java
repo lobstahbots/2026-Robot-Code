@@ -114,5 +114,10 @@ public class AutonSelector<V> extends SubsystemBase {
             Supplier<Command> command) {}
 
     /** A question to ask for customizing an auto routine. */
-    public static record AutoQuestion<V>(String question, Map<String, V> responses) {}
+    public static record AutoQuestion<V>(String question, Map<String, V> responses) {
+        public AutoQuestion(String question, List<String> responses) {
+            this(question, responses.stream().collect(LinkedHashMap::new, (map, option) -> map.put(option, null),
+                    LinkedHashMap::putAll));
+        }
+    }
 }
