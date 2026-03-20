@@ -29,8 +29,6 @@ public class Intake extends SubsystemBase {
     private final LoggedMechanismLigament2d arm2d = root
             .append(new LoggedMechanismLigament2d("Arm", Inches.of(12), Degrees.of(0)));
 
-    private boolean hasZeroed = false;
-
     /** Creates a new Intake. */
     public Intake(IntakeIO io) {
         this.io = io;
@@ -80,7 +78,6 @@ public class Intake extends SubsystemBase {
     public Command home() {
         return startEnd(() -> io.setArmVoltage(-6), () -> {
             io.stopArmMotor();
-            hasZeroed = true;
             io.resetEncoder(IntakeConstants.STOWED);
         }).until(() -> inputs.armCurrentAmps >= IntakeConstants.ARM_DEPLOY_CURRENT_THRESHOLD);
     }

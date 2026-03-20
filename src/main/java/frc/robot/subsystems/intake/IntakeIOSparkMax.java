@@ -6,9 +6,7 @@ package frc.robot.subsystems.intake;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -30,8 +28,6 @@ public class IntakeIOSparkMax implements IntakeIO {
 
     private final RelativeEncoder armEncoder;
     private final RelativeEncoder rollerEncoder;
-
-    private final SparkClosedLoopController armController;
 
     private final ProfiledPIDController controller = new ProfiledPIDController(IntakeConstants.kP, IntakeConstants.kI,
             IntakeConstants.kD,
@@ -58,7 +54,6 @@ public class IntakeIOSparkMax implements IntakeIO {
         armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         armEncoder = armMotor.getEncoder();
-        armController = armMotor.getClosedLoopController();
         rollerEncoder = rollerMotor.getEncoder();
 
         resetEncoder(IntakeConstants.STOWED);
