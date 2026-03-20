@@ -63,6 +63,7 @@ import frc.robot.util.auto.AutonSelector;
 import frc.robot.util.auto.AutonSelector.AutoQuestion;
 import frc.robot.util.led.LEDs;
 import frc.robot.util.math.ShotData;
+import frc.robot.util.trajectory.AlliancePoseMirror;
 
 public class RobotContainer {
     private final LEDs leds;
@@ -206,7 +207,11 @@ public class RobotContainer {
         Controllers.driver.LBButton.whileTrue(intake.spin());
 
         //Shoot
-        Controllers.driver.RTButton.onTrue(shooter.operate(() -> ShotData.getShotData(driveBase.getPose())))
+        Controllers.driver.RTButton
+                .onTrue(shooter.operate(() -> AlliancePoseMirror.mirrorPose2d(driveBase.getPose())
+                        .getX() < FieldConstants.LinesVertical.neutralZoneNear
+                                ? ShotData.getShotData(driveBase.getPose())
+                                : ShotData.getPassData(driveBase.getPose())))
                 .whileTrue(driveBase.joystickDrive(
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),

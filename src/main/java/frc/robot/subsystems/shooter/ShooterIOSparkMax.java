@@ -47,7 +47,7 @@ public class ShooterIOSparkMax implements ShooterIO {
                 .inverted(true);
         flywheelConfig.encoder.positionConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO)
                 .velocityConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
-                .quadratureMeasurementPeriod(10);
+                .quadratureMeasurementPeriod(10).uvwAverageDepth(5).uvwMeasurementPeriod(8);
         flywheelConfig.closedLoop
                 .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD,
                         ClosedLoopSlot.kSlot0)

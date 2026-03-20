@@ -118,6 +118,7 @@ public class DriveBase extends CharacterizableSubsystem {
      * @param pose The desired pose to reset the odometry to.
      */
     public void resetPose(Pose2d pose) {
+        pose = new Pose2d(pose.getTranslation(), gyroInputs.yawPosition);
         swerveOdometry.resetPosition(gyroInputs.yawPosition, getPositions(), pose);
         visionLessOdometry.resetPosition(gyroInputs.yawPosition, getPositions(), pose);
     }
@@ -420,7 +421,7 @@ public class DriveBase extends CharacterizableSubsystem {
             Translation2d linearVelocity = new Pose2d(new Translation2d(), linearDirection)
                     .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d())).getTranslation();
 
-            if (assist) {
+            if (assist && AlliancePoseMirror.mirrorPose2d(getPose()).getX() < FieldConstants.LinesVertical.neutralZoneNear) {
                 Translation2d targetPose = AlliancePoseMirror.mirrorTranslation2d(FieldConstants.Hub.innerCenterPoint.toTranslation2d());
                 Rotation2d targetAngle = targetPose.minus(getPose().getTranslation()).getAngle();
                 omega = thetaController.calculate(getPose().getRotation().plus(Rotation2d.kCCW_Pi_2).getRadians(), targetAngle.getRadians());

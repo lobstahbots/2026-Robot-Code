@@ -516,7 +516,7 @@ public final class Constants {
         public static final double FLYWHEEL_MAX_ACCELERATION = 8000;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
 
-        public static final AngularVelocity TOLERANCE = RPM.of(300);
+        public static final AngularVelocity TOLERANCE = RPM.of(400);
     }
 
     public static class DriverAssistConstants {
