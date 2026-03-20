@@ -246,9 +246,9 @@ public class RobotContainer {
                                         CharacterizationRoutine.DYNAMIC_BACKWARD))),
                 autoFactory::getCharacterizationRoutine);
 
-        autoChooser.addRoutine("Disrupt", List.of(new AutoQuestion<>("Which Side", List.of("left", "right"))),
+        autoChooser.addRoutine("Disrupt", List.of(AutoQuestion.makeQuestion("Which Side", List.of("left", "right"))),
                 autoFactory.call(autoFactory::disrupt));
-        autoChooser.addRoutine("Double Swipe", List.of(new AutoQuestion<>("Which Side?", List.of("left"))),
+        autoChooser.addRoutine("Double Swipe", List.of(AutoQuestion.makeQuestion("Which Side?", List.of("left"))),
                 autoFactory.call(autoFactory::swipe));
         autoChooser.addRoutine("Zero shooter", List.of(), shooter::zero);
         autoChooser.addRoutine("Shoot", List.of(),

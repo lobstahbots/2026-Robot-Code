@@ -59,27 +59,26 @@ public record ShotData(AngularVelocity flywheelVelocity, Rotation2d hoodPosition
 
     static {
         Distance ADD = Inches.of(15).plus(Meters.of(FieldConstants.Hub.width).times(Math.sqrt(2) / 2));
-        double mult = 3.2;
         shotMap.put(Meters.of(0.1).plus(ADD),
-                new ShotData(RPM.of(1020).times(mult), Rotation2d.fromDegrees(13), Seconds.of(1)));
+                new ShotData(RPM.of(3300), Rotation2d.fromDegrees(13), Seconds.of(1)));
         shotMap.put(Meters.of(0.35).plus(ADD),
-                new ShotData(RPM.of(1040).times(mult), Rotation2d.fromDegrees(17), Seconds.of(1)));
+                new ShotData(RPM.of(3400), Rotation2d.fromDegrees(17), Seconds.of(1)));
         shotMap.put(Meters.of(0.70).plus(ADD),
-                new ShotData(RPM.of(1075).times(mult), Rotation2d.fromDegrees(21), Seconds.of(1)));
+                new ShotData(RPM.of(3500), Rotation2d.fromDegrees(21), Seconds.of(1)));
         shotMap.put(Meters.of(1.25).plus(ADD),
-                new ShotData(RPM.of(1085).times(mult), Rotation2d.fromDegrees(25), Seconds.of(1)));
+                new ShotData(RPM.of(3600), Rotation2d.fromDegrees(25), Seconds.of(1)));
         shotMap.put(Meters.of(1.67).plus(ADD),
-                new ShotData(RPM.of(1120).times(mult), Rotation2d.fromDegrees(30), Seconds.of(1)));
+                new ShotData(RPM.of(3675), Rotation2d.fromDegrees(29), Seconds.of(1)));
         shotMap.put(Meters.of(2.10).plus(ADD),
-                new ShotData(RPM.of(1110).times(mult), Rotation2d.fromDegrees(35), Seconds.of(1)));
+                new ShotData(RPM.of(3825), Rotation2d.fromDegrees(34), Seconds.of(1)));
         shotMap.put(Meters.of(2.70).plus(ADD),
-                new ShotData(RPM.of(1085).times(mult), Rotation2d.fromDegrees(40), Seconds.of(1)));
+                new ShotData(RPM.of(3900), Rotation2d.fromDegrees(38), Seconds.of(1)));
         shotMap.put(Meters.of(3.33).plus(ADD),
-                new ShotData(RPM.of(1110).times(mult), Rotation2d.fromDegrees(43), Seconds.of(1)));
+                new ShotData(RPM.of(3950), Rotation2d.fromDegrees(43), Seconds.of(1)));
         shotMap.put(Meters.of(3.66).plus(ADD),
-                new ShotData(RPM.of(1085).times(mult), Rotation2d.fromDegrees(43), Seconds.of(1)));
+                new ShotData(RPM.of(3400), Rotation2d.fromDegrees(43), Seconds.of(1)));
         shotMap.put(Meters.of(4.15).plus(ADD),
-                new ShotData(RPM.of(1100).times(mult), Rotation2d.fromDegrees(46), Seconds.of(1)));
+                new ShotData(RPM.of(4125), Rotation2d.fromDegrees(46), Seconds.of(1)));
     }
 
     public static final ShotData getShotData(Pose2d pose) {

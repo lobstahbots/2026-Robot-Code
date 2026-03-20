@@ -444,7 +444,7 @@ public final class Constants {
                                                                           // See https://www.desmos.com/calculator/i5z7ddbjy4
 
         public static final double REPROJ_TO_STDEV_EXP = 0.01;
-        public static final Vector<N3> BASE_STDEV = VecBuilder.fill(0.1, 0.1, 1000.0); // x, y, angle
+        public static final Vector<N3> BASE_STDEV = VecBuilder.fill(0.1, 0.1, 100000.0); // x, y, angle
         public static final double AMBIGUITY_ACCEPTANCE_THRESHOLD = 0.2;
         public static final double SIM_BUFFER_LENGTH = 1.5;
     }
@@ -504,19 +504,19 @@ public final class Constants {
         public static final double HOOD_ALLOWED_PROFILE_ERROR = 0.4; // rotations
         public static final int HOOD_CURRENT_LIMIT = 30;
 
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromRadians(-0.193);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.kZero;
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromRotations(0.13);
 
-        public static final double FLYWHEEL_kP = 0.00025;
+        public static final double FLYWHEEL_kP = 0.00015;
         public static final double FLYWHEEL_kI = 0.0 / 60;
-        public static final double FLYWHEEL_kD = 0.03;
-        public static final double FLYWHEEL_kS = 0.0976328;
-        public static final double FLYWHEEL_kV = 0.00243482;
+        public static final double FLYWHEEL_kD = 0.0;
+        public static final double FLYWHEEL_kS = 0.272137;
+        public static final double FLYWHEEL_kV = 0.00167205;
         public static final double FLYWHEEL_kA = 0.0 / 60;
         public static final double FLYWHEEL_MAX_ACCELERATION = 8000;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
 
-        public static final AngularVelocity TOLERANCE = RPM.of(150);
+        public static final AngularVelocity TOLERANCE = RPM.of(300);
     }
 
     public static class DriverAssistConstants {

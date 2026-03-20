@@ -34,6 +34,7 @@ public class ShooterIOSparkMax implements ShooterIO {
     private final RelativeEncoder hoodEncoder;
     private final Encoder quadEncoder = new Encoder(0, 1);
     private Rotation2d offset = Rotation2d.kZero;
+    private boolean useProfile = true;
 
     public ShooterIOSparkMax(int flywheelMotor1ID, int flywheelMotor2ID, int flywheelMotor3ID, int hoodMotorID) {
         this.flywheelMotor1 = new SparkMax(flywheelMotor1ID, MotorType.kBrushless);
@@ -91,6 +92,7 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     public void setFlywheelVoltage(double voltage) {
+        useProfile = true;
         flywheelMotor1.setVoltage(voltage);
     }
 
@@ -100,6 +102,8 @@ public class ShooterIOSparkMax implements ShooterIO {
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
         if (RPM.of(flywheelEncoder.getVelocity()).isNear(velocity, ShooterConstants.TOLERANCE))
+            useProfile = false;
+        if (!useProfile)
             flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl,
                     ClosedLoopSlot.kSlot1);
         else
@@ -136,5 +140,7 @@ public class ShooterIOSparkMax implements ShooterIO {
         inputs.hoodAppliedVoltage = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
         inputs.hoodCurrent = hoodMotor.getOutputCurrent();
         inputs.hoodTemperature = hoodMotor.getMotorTemperature();
+
+        inputs.useProfile = useProfile;
     }
 }

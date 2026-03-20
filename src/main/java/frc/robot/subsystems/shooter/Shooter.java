@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,7 +33,7 @@ public class Shooter extends SubsystemBase {
     public Shooter(ShooterIO io) {
         this.io = io;
         atSpeed = new Trigger(() -> inputs.flywheelVelocity.isNear(setpoint, ShooterConstants.TOLERANCE)
-                && !setpoint.isNear(zero, ShooterConstants.TOLERANCE)).debounce(0.05);
+                && !setpoint.isNear(zero, ShooterConstants.TOLERANCE)).debounce(0.1);
     }
 
     /**

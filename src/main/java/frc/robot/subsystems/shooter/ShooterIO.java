@@ -22,6 +22,8 @@ public interface ShooterIO {
         public double hoodCurrent = 0.0;
         public double hoodTemperature = 0.0;
         public AngularVelocity hoodVelocity = RotationsPerSecond.of(0);
+
+        public boolean useProfile = true;
     }
 
     public default void setFlywheelVoltage(double voltage) {}
