@@ -5,33 +5,23 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedNetworkInput;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
-
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.AngularVelocityUnit;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.AutoFactory.CharacterizationRoutine;
 import frc.robot.Constants.Comp;
 import frc.robot.Constants.DriveConstants;
@@ -71,7 +61,6 @@ import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.util.auto.AutonSelector;
 import frc.robot.util.auto.AutonSelector.AutoQuestion;
-import frc.robot.util.command.CycleCommand;
 import frc.robot.util.led.LEDs;
 import frc.robot.util.math.ShotData;
 
@@ -88,10 +77,6 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
 
     private SwerveDriveSimulation driveSimulation = null;
-
-    private ShotData shotData = new ShotData(RPM.of(0), Rotation2d.kZero, null);
-
-    private AngularVelocity shooterVel = RPM.of(2000);
 
     //private int scoreLevel = 1;
 
@@ -226,7 +211,6 @@ public class RobotContainer {
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_VERTICAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.LEFT_STICK_HORIZONTAL),
                         () -> -Controllers.driver.getRawAxis(ControllerIOConstants.RIGHT_STICK_HORIZONTAL), true));
-        Controllers.driver.RBButton.onTrue(shooter.operate(() -> shotData));
         Controllers.driver.LTButton.onTrue(shooter.operate(() -> new ShotData(RPM.of(4000), Rotation2d.fromDegrees(48), Seconds.of(1))));
         Controllers.driver.RTButton.or(DriverStation::isAutonomousEnabled).or(Controllers.driver.RBButton).or(Controllers.driver.LTButton)
                 .and(shooter.atSpeed).whileTrue(indexer.spindex());
@@ -237,12 +221,8 @@ public class RobotContainer {
         //Operator Test
         Controllers.operator.YButton.onTrue(intake.deploy());
         Controllers.operator.AButton.onTrue(intake.stow());
-        Controllers.operator.XButton.onTrue(Commands.runOnce(() -> {
-            shotData = ShotData.getShotData(1);
-        }));
         Controllers.operator.leftPaddle.whileTrue(intake.spin());
         Controllers.operator.RBButton.whileTrue(indexer.spindex());
-        Controllers.operator.LBButton.onTrue(shooter.operate(() -> shotData));
     }
 
     public boolean getOperatorConnected() {
