@@ -31,6 +31,9 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RPM;
+
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.wpilibj.RuntimeType;
@@ -512,6 +515,8 @@ public final class Constants {
         public static final double FLYWHEEL_kA = 0.0 / 60;
         public static final double FLYWHEEL_MAX_ACCELERATION = 8000;
         public static final int FLYWHEEL_CURRENT_LIMIT = 60;
+
+        public static final AngularVelocity TOLERANCE = RPM.of(150);
     }
 
     public static class DriverAssistConstants {

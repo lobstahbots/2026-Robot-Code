@@ -26,15 +26,13 @@ public class Shooter extends SubsystemBase {
     private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
     private AngularVelocity setpoint = RPM.of(0);
     private final AngularVelocity zero = RPM.zero();
-    private final AngularVelocity tolerance = RPM.of(150);
 
     public Trigger atSpeed;
 
     public Shooter(ShooterIO io) {
         this.io = io;
-        atSpeed = new Trigger(
-                () -> inputs.flywheelVelocity.isNear(setpoint, tolerance) && !setpoint.isNear(zero, tolerance))
-                        .debounce(0.05);
+        atSpeed = new Trigger(() -> inputs.flywheelVelocity.isNear(setpoint, ShooterConstants.TOLERANCE)
+                && !setpoint.isNear(zero, ShooterConstants.TOLERANCE)).debounce(0.05);
     }
 
     /**

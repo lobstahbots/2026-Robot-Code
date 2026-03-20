@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.FeedForwardConfig;
@@ -47,10 +48,19 @@ public class ShooterIOSparkMax implements ShooterIO {
                 .velocityConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
                 .quadratureMeasurementPeriod(10);
         flywheelConfig.closedLoop
-                .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD)
+                .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD,
+                        ClosedLoopSlot.kSlot0)
                 .apply(new FeedForwardConfig().sva(ShooterConstants.FLYWHEEL_kS, ShooterConstants.FLYWHEEL_kV,
-                        ShooterConstants.FLYWHEEL_kA))
-                .apply(new MAXMotionConfig().maxAcceleration(ShooterConstants.FLYWHEEL_MAX_ACCELERATION));
+                        ShooterConstants.FLYWHEEL_kA, ClosedLoopSlot.kSlot0))
+                .apply(new MAXMotionConfig().maxAcceleration(ShooterConstants.FLYWHEEL_MAX_ACCELERATION,
+                        ClosedLoopSlot.kSlot0));
+        flywheelConfig.closedLoop
+                .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD,
+                        ClosedLoopSlot.kSlot1)
+                .apply(new FeedForwardConfig().sva(ShooterConstants.FLYWHEEL_kS, ShooterConstants.FLYWHEEL_kV,
+                        ShooterConstants.FLYWHEEL_kA, ClosedLoopSlot.kSlot1))
+                .apply(new MAXMotionConfig().maxAcceleration(ShooterConstants.FLYWHEEL_MAX_ACCELERATION * 10000,
+                        ClosedLoopSlot.kSlot1));
         flywheelMotor1.configure(flywheelConfig, ResetMode.kResetSafeParameters,
                 com.revrobotics.PersistMode.kPersistParameters);
         flywheelConfig.follow(flywheelMotor1);
@@ -89,7 +99,12 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     public void setFlywheelVelocity(AngularVelocity velocity) {
-        flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl);
+        if (RPM.of(flywheelEncoder.getVelocity()).isNear(velocity, ShooterConstants.TOLERANCE))
+            flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl,
+                    ClosedLoopSlot.kSlot1);
+        else
+            flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl,
+                    ClosedLoopSlot.kSlot0);
     }
 
     public void setHoodPosition(Rotation2d position) {
