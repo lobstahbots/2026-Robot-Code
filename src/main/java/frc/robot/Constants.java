@@ -507,7 +507,7 @@ public final class Constants {
         public static final Rotation2d MIN_ANGLE = Rotation2d.kZero;
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromRotations(0.13);
 
-        public static final double FLYWHEEL_kP = 0.00015;
+        public static final double FLYWHEEL_kP = 0.0008;
         public static final double FLYWHEEL_kI = 0.0 / 60;
         public static final double FLYWHEEL_kD = 0.0;
         public static final double FLYWHEEL_kS = 0.272137;

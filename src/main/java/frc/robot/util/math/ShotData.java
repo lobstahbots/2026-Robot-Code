@@ -59,11 +59,11 @@ public record ShotData(AngularVelocity flywheelVelocity, Rotation2d hoodPosition
 
     static {
         shotMap.put(Meters.of(1.35),
-                new ShotData(RPM.of(3300), Rotation2d.fromDegrees(13), Seconds.of(1)));
+                new ShotData(RPM.of(3300), Rotation2d.fromDegrees(15), Seconds.of(1)));
         shotMap.put(Meters.of(1.6),
-                new ShotData(RPM.of(3400), Rotation2d.fromDegrees(17), Seconds.of(1)));
+                new ShotData(RPM.of(3400), Rotation2d.fromDegrees(18), Seconds.of(1)));
         shotMap.put(Meters.of(1.95),
-                new ShotData(RPM.of(3500), Rotation2d.fromDegrees(21), Seconds.of(1)));
+                new ShotData(RPM.of(3500), Rotation2d.fromDegrees(22), Seconds.of(1)));
         shotMap.put(Meters.of(2.5),
                 new ShotData(RPM.of(3625), Rotation2d.fromDegrees(25), Seconds.of(1)));
         shotMap.put(Meters.of(2.92),
@@ -73,9 +73,9 @@ public record ShotData(AngularVelocity flywheelVelocity, Rotation2d hoodPosition
         shotMap.put(Meters.of(3.95),
                 new ShotData(RPM.of(3925), Rotation2d.fromDegrees(38), Seconds.of(1)));
         shotMap.put(Meters.of(4.58),
-                new ShotData(RPM.of(3950), Rotation2d.fromDegrees(43), Seconds.of(1)));
-        shotMap.put(Meters.of(4.91),
                 new ShotData(RPM.of(4000), Rotation2d.fromDegrees(43), Seconds.of(1)));
+        shotMap.put(Meters.of(4.91),
+                new ShotData(RPM.of(4050), Rotation2d.fromDegrees(43), Seconds.of(1)));
         shotMap.put(Meters.of(5.40),
                 new ShotData(RPM.of(4125), Rotation2d.fromDegrees(46), Seconds.of(1)));
     }
