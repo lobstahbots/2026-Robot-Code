@@ -55,13 +55,14 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
                 .plus(moduleSimulation.getDriveWheelFinalSpeed().times(Seconds.of(SimConstants.LOOP_TIME))));
         inputs.driveVelocityRadPerSec = moduleSimulation.getDriveWheelFinalSpeed().in(RadiansPerSecond);
         inputs.driveAppliedVolts = driveAppliedVolts;
-        inputs.driveCurrentAmps = moduleSimulation.getDriveMotorSupplyCurrent().in(Amps);
+        inputs.driveStatorCurrentAmps = moduleSimulation.getDriveMotorStatorCurrent().in(Amps);
+        inputs.driveSupplyCurrentAmps = moduleSimulation.getDriveMotorSupplyCurrent().in(Amps);
         inputs.turnVelocityRadPerSec = moduleSimulation.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
         inputs.turnAppliedVolts = turnAppliedVolts;
         inputs.turnCurrentAmps = moduleSimulation.getSteerMotorSupplyCurrent().in(Amps);
         inputs.angularOffset = angularOffset;
 
-        SimShared.powerDistributionSim.setCurrent(SimConstants.SWERVE_CHANNELS[2 * id], inputs.driveCurrentAmps);
+        SimShared.powerDistributionSim.setCurrent(SimConstants.SWERVE_CHANNELS[2 * id], inputs.driveStatorCurrentAmps);
         SimShared.powerDistributionSim.setCurrent(SimConstants.SWERVE_CHANNELS[2 * id + 1], inputs.turnCurrentAmps);
     }
 

@@ -17,13 +17,16 @@ public interface SwerveModuleIO {
         public Rotation2d drivePosition = new Rotation2d();
         public double driveVelocityRadPerSec = 0.0;
         public double driveAppliedVolts = 0.0;
-        public double driveCurrentAmps = 0.0;
+        public double driveStatorCurrentAmps = 0.0;
+        public double driveSupplyCurrentAmps = 0.0;
+        public double driveTemperature = 25.0;
 
         public Rotation2d turnAbsolutePosition = new Rotation2d();
         public Rotation2d turnPosition = new Rotation2d();
         public double turnVelocityRadPerSec = 0.0;
         public double turnAppliedVolts = 0.0;
         public double turnCurrentAmps = 0.0;
+        public double turnTemperature = 25.0;
         public Rotation2d angularOffset = new Rotation2d();
     }
 

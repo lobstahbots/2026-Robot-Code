@@ -29,6 +29,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.RobotConstants;
@@ -47,6 +48,8 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
     private final StatusSignal<Angle> drivePosition;
     private final StatusSignal<Voltage> driveVoltage;
     private final StatusSignal<Current> driveCurrent;
+    private final StatusSignal<Current> driveSupply;
+    private final StatusSignal<Temperature> driveTemperature;
 
     /**
      * Creates a new SwerveModule for real cases.
@@ -67,6 +70,8 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
         drivePosition = driveMotor.getPosition();
         driveVoltage = driveMotor.getMotorVoltage();
         driveCurrent = driveMotor.getStatorCurrent();
+        driveSupply = driveMotor.getSupplyCurrent();
+        driveTemperature = driveMotor.getDeviceTemp();
 
         var driveMotorConfig = new TalonFXConfiguration()
                 .withCurrentLimits(
@@ -176,7 +181,9 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
         inputs.drivePosition = new Rotation2d(drivePosition.getValue());
         inputs.driveVelocityRadPerSec = driveVelocity.getValue().in(RadiansPerSecond);
         inputs.driveAppliedVolts = driveVoltage.getValueAsDouble();
-        inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
+        inputs.driveStatorCurrentAmps = driveCurrent.getValueAsDouble();
+        inputs.driveSupplyCurrentAmps = driveSupply.getValueAsDouble();
+        inputs.driveTemperature = driveTemperature.getValueAsDouble();
 
         inputs.turnAbsolutePosition = angleMotor.getLastError() == REVLibError.kOk
                 ? Rotation2d.fromRadians(-angleAbsoluteEncoder.getPosition() - angularOffset.getRadians())
@@ -187,13 +194,10 @@ public class SwerveModuleIOTalonFX implements SwerveModuleIO {
         inputs.turnAppliedVolts = angleMotor.getAppliedOutput() * angleMotor.getBusVoltage();
         inputs.turnCurrentAmps = angleMotor.getOutputCurrent();
         inputs.angularOffset = angularOffset;
+        inputs.turnTemperature = angleMotor.getMotorTemperature();
     }
 
     public void periodic() {
         monitor.monitor();
-        drivePosition.refresh();
-        driveVelocity.refresh();
-        driveCurrent.refresh();
-        driveVoltage.refresh();
     }
 }
