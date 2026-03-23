@@ -275,7 +275,7 @@ public final class Constants {
             public static final double MAX_DRIVE_SPEED = 100;
             public static final double MAX_ANGULAR_SPEED = 50;
             public static final double SLOWDOWN_PERCENT = 0.5;
-            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 30;
+            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 40;
             public static final int ANGLE_MOTOR_CURRENT_LIMIT = 20;
             public static final Translation2d[] MODULE_LOCATIONS = new Translation2d[] {
                     new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
