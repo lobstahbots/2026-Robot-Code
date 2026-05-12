@@ -2,6 +2,8 @@ plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "com.peterabeles.gversion" version "1.10"
+    id "org.jetbrains.kotlin.jvm" version "2.3.21"
+    id "org.jetbrains.kotlin.kapt" version "2.3.21"
 }
 
 java {
@@ -65,6 +67,7 @@ dependencies {
     annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
+    kapt wpi.java.deps.wpilibAnnotations()
 
     roborioDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.roborio)
     roborioDebug wpi.java.vendor.jniDebug(wpi.platforms.roborio)
@@ -87,6 +90,9 @@ dependencies {
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+    kapt "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 project.compileJava.dependsOn(createVersionFile)
@@ -126,4 +132,8 @@ wpi.java.configureTestTasks(test)
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+kotlin {
+    jvmToolchain(17)
 }
