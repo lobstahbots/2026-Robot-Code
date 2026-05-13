@@ -35,14 +35,14 @@ public class ShooterIOSimBasic implements ShooterIO {
 
     public void updateInputs(ShooterIOInputs inputs) {
         state = profile.calculate(SimConstants.LOOP_TIME, state, goal);
-        inputs.hoodPosition = Rotation2d.fromRotations(state.position);
-        inputs.hoodVelocity = RotationsPerSecond.of(state.velocity);
+        inputs.setHoodPosition(Rotation2d.fromRotations(state.position));
+        inputs.setHoodVelocity(RotationsPerSecond.of(state.velocity));
         // trick homing code
-        if (inputs.hoodPosition.equals(ShooterConstants.MIN_ANGLE)) {
-            inputs.hoodCurrent = 11;
+        if (inputs.getHoodPosition().equals(ShooterConstants.MIN_ANGLE)) {
+            inputs.setHoodCurrent(11);
         } else {
-            inputs.hoodCurrent = 0;
+            inputs.setHoodCurrent(0);
         }
-        inputs.flywheelVelocity = RotationsPerSecond.of(flywheelVelocity);
+        inputs.setFlywheelVelocity(RotationsPerSecond.of(flywheelVelocity));
     }
 }

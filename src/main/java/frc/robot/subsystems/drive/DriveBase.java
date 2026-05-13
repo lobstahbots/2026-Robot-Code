@@ -42,7 +42,6 @@ import frc.robot.Constants.IOConstants;
 import frc.robot.subsystems.vision.Camera;
 import frc.robot.subsystems.vision.Camera.Pose;
 import frc.robot.util.led.LEDs;
-import frc.robot.util.math.DriveAssist;
 import frc.robot.util.math.LobstahMath;
 import frc.robot.util.sysId.CharacterizableSubsystem;
 import frc.robot.util.trajectory.AlliancePoseMirror;

@@ -140,6 +140,9 @@ $RECYCLE.BIN/
 .gradle
 /build/
 
+autolog-processor/build/
+autolog-processor/.gradle
+
 # Ignore Gradle GUI config
 gradle-app.setting
 

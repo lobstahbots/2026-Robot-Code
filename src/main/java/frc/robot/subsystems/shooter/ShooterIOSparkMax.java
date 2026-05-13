@@ -122,25 +122,26 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     public void updateInputs(ShooterIOInputs inputs) {
-        inputs.flywheelVelocity = RPM.of(flywheelEncoder.getVelocity());
-        inputs.flywheelSetpoint = RPM.of(flywheelController.getMAXMotionSetpointVelocity());
-        inputs.flywheelAppliedVoltages[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
-        inputs.flywheelAppliedVoltages[1] = flywheelMotor2.getAppliedOutput() * flywheelMotor2.getBusVoltage();
-        inputs.flywheelAppliedVoltages[2] = flywheelMotor3.getAppliedOutput() * flywheelMotor3.getBusVoltage();
-        inputs.flywheelCurrents[0] = flywheelMotor1.getOutputCurrent();
-        inputs.flywheelCurrents[1] = flywheelMotor2.getOutputCurrent();
-        inputs.flywheelCurrents[2] = flywheelMotor3.getOutputCurrent();
-        inputs.flywheelTemperatures[0] = flywheelMotor1.getMotorTemperature();
-        inputs.flywheelTemperatures[1] = flywheelMotor2.getMotorTemperature();
-        inputs.flywheelTemperatures[2] = flywheelMotor3.getMotorTemperature();
+        inputs.setFlywheelVelocity(RPM.of(flywheelEncoder.getVelocity()));
+        inputs.setFlywheelSetpoint(RPM.of(flywheelController.getMAXMotionSetpointVelocity()));
+        
+        inputs.getFlywheelAppliedVoltages()[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
+        inputs.getFlywheelAppliedVoltages()[1] = flywheelMotor2.getAppliedOutput() * flywheelMotor2.getBusVoltage();
+        inputs.getFlywheelAppliedVoltages()[2] = flywheelMotor3.getAppliedOutput() * flywheelMotor3.getBusVoltage();
+        inputs.getFlywheelCurrents()[0] = flywheelMotor1.getOutputCurrent();
+        inputs.getFlywheelCurrents()[1] = flywheelMotor2.getOutputCurrent();
+        inputs.getFlywheelCurrents()[2] = flywheelMotor3.getOutputCurrent();
+        inputs.getFlywheelTemperatures()[0] = flywheelMotor1.getMotorTemperature();
+        inputs.getFlywheelTemperatures()[1] = flywheelMotor2.getMotorTemperature();
+        inputs.getFlywheelTemperatures()[2] = flywheelMotor3.getMotorTemperature();
 
-        inputs.hoodPosition = Rotation2d.fromRotations(hoodEncoder.getPosition());
-        inputs.encoderPosition = Rotation2d.fromRotations(quadEncoder.getDistance()).plus(offset);
-        inputs.hoodVelocity = RotationsPerSecond.of(hoodEncoder.getVelocity());
-        inputs.hoodAppliedVoltage = hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage();
-        inputs.hoodCurrent = hoodMotor.getOutputCurrent();
-        inputs.hoodTemperature = hoodMotor.getMotorTemperature();
+        inputs.setHoodPosition(Rotation2d.fromRotations(hoodEncoder.getPosition()));
+        inputs.setEncoderPosition(Rotation2d.fromRotations(quadEncoder.getDistance()).plus(offset));
+        inputs.setHoodVelocity(RotationsPerSecond.of(hoodEncoder.getVelocity()));
+        inputs.setHoodAppliedVoltage(hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage());
+        inputs.setHoodCurrent(hoodMotor.getOutputCurrent());
+        inputs.setHoodTemperature(hoodMotor.getMotorTemperature());
 
-        inputs.useProfile = useProfile;
+        inputs.setUseProfile(useProfile);
     }
 }

@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,7 +31,7 @@ public class Shooter extends SubsystemBase {
 
     public Shooter(ShooterIO io) {
         this.io = io;
-        atSpeed = new Trigger(() -> inputs.flywheelVelocity.isNear(setpoint, ShooterConstants.TOLERANCE)
+        atSpeed = new Trigger(() -> inputs.getFlywheelVelocity().isNear(setpoint, ShooterConstants.TOLERANCE)
                 && !setpoint.isNear(zero, ShooterConstants.TOLERANCE)).debounce(0.1);
     }
 
@@ -42,7 +41,7 @@ public class Shooter extends SubsystemBase {
      * @return The current hood position
      */
     public Rotation2d getHoodPosition() {
-        return inputs.hoodPosition;
+        return inputs.getHoodPosition();
     }
 
     /**
@@ -51,7 +50,7 @@ public class Shooter extends SubsystemBase {
      * @return The current flywheel velocity.
      */
     public AngularVelocity getFlywheelVelocity() {
-        return inputs.hoodVelocity;
+        return inputs.getFlywheelVelocity();
     }
 
     @Override
@@ -95,7 +94,7 @@ public class Shooter extends SubsystemBase {
             io.setHoodPosition(hoodAngle.get());
             io.setFlywheelVelocity(setpoint = flywheelVelocity.get());
         }, () -> {
-            io.setHoodPosition(inputs.hoodPosition);
+            io.setHoodPosition(inputs.getHoodPosition());
             io.setFlywheelVoltage(0);
         });
     }
@@ -115,7 +114,7 @@ public class Shooter extends SubsystemBase {
 
     public Command zero() {
         return runEnd(() -> io.setHoodVoltage(-10), () -> io.setHoodVoltage(0))
-                .raceWith(new WaitCommand(0.1).andThen(Commands.idle().until(() -> inputs.hoodCurrent > 25)))
+                .raceWith(new WaitCommand(0.1).andThen(Commands.idle().until(() -> inputs.getHoodCurrent() > 25)))
                 .andThen(Commands.waitSeconds(0.05).andThen(() -> io.resetEncoder(ShooterConstants.MIN_ANGLE)));
     }
 }
