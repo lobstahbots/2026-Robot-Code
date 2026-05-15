@@ -48,7 +48,7 @@ abstract class GenerateUnitTask extends DefaultTask {
                         PropertySpec prop = PropertySpec.builder(extensionName, ktReturnType)
                                 .receiver(receiver)
                                 .getter(FunSpec.getterBuilder()
-                                        .addStatement("return %N.of(this.toDouble())", field.name)
+                                        .addStatement(receiver == TypeNames.DOUBLE ? "return %N.of(this)" : "return %N.of(this.toDouble())", field.name)
                                         .addModifiers(KModifier.INLINE)
                                         .build())
                                 .build()
