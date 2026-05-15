@@ -136,3 +136,16 @@ tasks.withType(JavaCompile) {
 kotlin {
     jvmToolchain(17)
 }
+
+def unitTask = tasks.register("generateUnit", GenerateUnitTask) {
+    sourceClassName = "edu.wpi.first.units.Units"
+    outputNamespace = "com.lobstahbots.units"
+    classpath.from(configurations.compileClasspath, configurations.runtimeClasspath)
+    outputDir = layout.buildDirectory.dir("generated/kotlin/units")
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(unitTask)
+}
+
+sourceSets.main.kotlin.srcDir(unitTask.flatMap { it.outputDir })
