@@ -275,7 +275,7 @@ public final class Constants {
             public static final double MAX_DRIVE_SPEED = 100;
             public static final double MAX_ANGULAR_SPEED = 50;
             public static final double SLOWDOWN_PERCENT = 0.5;
-            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 30;
+            public static final int DRIVE_MOTOR_CURRENT_LIMIT = 40;
             public static final int ANGLE_MOTOR_CURRENT_LIMIT = 20;
             public static final Translation2d[] MODULE_LOCATIONS = new Translation2d[] {
                     new Translation2d(RobotConstants.WHEELBASE / 2.0 - RobotConstants.EDGE_TO_MODULE_CENTER,
@@ -409,18 +409,34 @@ public final class Constants {
         }
         public static final Map<String, Transform3d> COMP_CAMERA_TRANSFORMS = new HashMap<>();
         static {
+            // COMP_CAMERA_TRANSFORMS.put("left",
+            //         new Transform3d(Inches.of(-9.922), Inches.of(13.016), Inches.of(20.516),
+            //                 new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+            //                         .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(155)))));
+            // COMP_CAMERA_TRANSFORMS.put("center",
+            //         new Transform3d(Inches.of(-7.000), Inches.of(15.837), Inches.of(20.513),
+            //                 new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+            //                         .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(90)))));
+            // COMP_CAMERA_TRANSFORMS.put("right",
+            //         new Transform3d(Inches.of(-1.385), Inches.of(14.387), Inches.of(20.392),
+            //                 new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+            //                         .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(25)))));
             COMP_CAMERA_TRANSFORMS.put("left",
-                    new Transform3d(Inches.of(-9.922), Inches.of(13.016), Inches.of(20.516),
+                    new Transform3d(Inches.of(-9.528), Inches.of(11.430), Inches.of(20.584),
                             new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
-                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(155)))));
-            COMP_CAMERA_TRANSFORMS.put("center",
-                    new Transform3d(Inches.of(-7.000), Inches.of(15.837), Inches.of(20.513),
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(185)))));
+            COMP_CAMERA_TRANSFORMS.put("leftcenter",
+                    new Transform3d(Inches.of(-7.793), Inches.of(14.500), Inches.of(20.580),
                             new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
-                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(90)))));
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(120)))));
+            COMP_CAMERA_TRANSFORMS.put("rightcenter",
+                    new Transform3d(Inches.of(-1.788), Inches.of(14.722), Inches.of(20.583),
+                            new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(60)))));
             COMP_CAMERA_TRANSFORMS.put("right",
-                    new Transform3d(Inches.of(-1.385), Inches.of(14.387), Inches.of(20.392),
+                    new Transform3d(Inches.of(-0.134), Inches.of(11.563), Inches.of(20.578),
                             new Rotation3d(Degrees.of(0), Degrees.of(20), Degrees.of(0))
-                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(25)))));
+                                    .rotateBy(new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(-5)))));
         }
         public static final Map<String, Transform3d> CAMERA_TRANSFORMS = getRobot() == RobotType.WAFFLE
                 ? WAFFLE_CAMERA_TRANSFORMS
