@@ -1,147 +1,166 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.shooter
 
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import com.revrobotics.PersistMode
+import com.revrobotics.RelativeEncoder
+import com.revrobotics.ResetMode
+import com.revrobotics.spark.ClosedLoopSlot
+import com.revrobotics.spark.SparkClosedLoopController
+import com.revrobotics.spark.SparkLowLevel.MotorType
+import com.revrobotics.spark.SparkMax
+import com.revrobotics.spark.config.FeedForwardConfig
+import com.revrobotics.spark.config.MAXMotionConfig
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
+import com.revrobotics.spark.config.SparkMaxConfig
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.units.measure.AngularVelocity
+import edu.wpi.first.wpilibj.Encoder
+import frc.robot.Constants.*
+import com.lobstahbots.units.*
+import com.revrobotics.spark.SparkBase.ControlType
+import edu.wpi.first.units.Units.RPM
 
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.FeedForwardConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
+class ShooterIOSparkMax(flywheelMotor1ID: Int, flywheelMotor2ID: Int, flywheelMotor3ID: Int, hoodMotorID: Int) :
+    ShooterIO {
+    var offset: Rotation2d = Rotation2d.kZero
+    var useProfile = true
+    val flywheelMotor1: SparkMax = SparkMax(flywheelMotor1ID, MotorType.kBrushless)
+    val flywheelMotor2: SparkMax = SparkMax(flywheelMotor2ID, MotorType.kBrushless)
+    val flywheelMotor3: SparkMax = SparkMax(flywheelMotor3ID, MotorType.kBrushless)
+    val hoodMotor: SparkMax = SparkMax(hoodMotorID, MotorType.kBrushless)
+    val flywheelEncoder: RelativeEncoder
+    val flywheelController: SparkClosedLoopController
+    val hoodEncoder: RelativeEncoder
+    val hoodController: SparkClosedLoopController
+    val quadEncoder = Encoder(0, 1)
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.Encoder;
-
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
-import frc.robot.Constants.ShooterConstants;
-
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
-public class ShooterIOSparkMax implements ShooterIO {
-    private final SparkMax flywheelMotor1;
-    private final SparkMax flywheelMotor2;
-    private final SparkMax flywheelMotor3;
-    private final SparkMax hoodMotor;
-    private final SparkClosedLoopController flywheelController;
-    private final SparkClosedLoopController hoodController;
-    private final RelativeEncoder flywheelEncoder;
-    private final RelativeEncoder hoodEncoder;
-    private final Encoder quadEncoder = new Encoder(0, 1);
-    private Rotation2d offset = Rotation2d.kZero;
-    private boolean useProfile = true;
-
-    public ShooterIOSparkMax(int flywheelMotor1ID, int flywheelMotor2ID, int flywheelMotor3ID, int hoodMotorID) {
-        this.flywheelMotor1 = new SparkMax(flywheelMotor1ID, MotorType.kBrushless);
-        this.flywheelMotor2 = new SparkMax(flywheelMotor2ID, MotorType.kBrushless);
-        this.flywheelMotor3 = new SparkMax(flywheelMotor3ID, MotorType.kBrushless);
-        this.hoodMotor = new SparkMax(hoodMotorID, MotorType.kBrushless);
-
-        SparkMaxConfig flywheelConfig = new SparkMaxConfig();
+    init {
+        val flywheelConfig = SparkMaxConfig()
         flywheelConfig.smartCurrentLimit(ShooterConstants.FLYWHEEL_CURRENT_LIMIT).idleMode(IdleMode.kCoast)
-                .inverted(true);
+            .inverted(true)
         flywheelConfig.encoder.positionConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO)
-                .velocityConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
-                .quadratureMeasurementPeriod(10).uvwAverageDepth(5).uvwMeasurementPeriod(8);
-        flywheelConfig.closedLoop
-                .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD,
-                        ClosedLoopSlot.kSlot0)
-                .apply(new FeedForwardConfig().sva(ShooterConstants.FLYWHEEL_kS, ShooterConstants.FLYWHEEL_kV,
-                        ShooterConstants.FLYWHEEL_kA, ClosedLoopSlot.kSlot0))
-                .apply(new MAXMotionConfig().maxAcceleration(ShooterConstants.FLYWHEEL_MAX_ACCELERATION,
-                        ClosedLoopSlot.kSlot0));
-        flywheelConfig.closedLoop
-                .pid(ShooterConstants.FLYWHEEL_kP, ShooterConstants.FLYWHEEL_kI, ShooterConstants.FLYWHEEL_kD,
-                        ClosedLoopSlot.kSlot1)
-                .apply(new FeedForwardConfig().sva(ShooterConstants.FLYWHEEL_kS, ShooterConstants.FLYWHEEL_kV,
-                        ShooterConstants.FLYWHEEL_kA, ClosedLoopSlot.kSlot1))
-                .apply(new MAXMotionConfig().maxAcceleration(ShooterConstants.FLYWHEEL_MAX_ACCELERATION * 10000,
-                        ClosedLoopSlot.kSlot1));
-        flywheelMotor1.configure(flywheelConfig, ResetMode.kResetSafeParameters,
-                com.revrobotics.PersistMode.kPersistParameters);
-        flywheelConfig.follow(flywheelMotor1);
-        flywheelMotor2.configure(flywheelConfig, ResetMode.kResetSafeParameters,
-                com.revrobotics.PersistMode.kPersistParameters);
-        flywheelMotor3.configure(flywheelConfig, ResetMode.kResetSafeParameters,
-                com.revrobotics.PersistMode.kPersistParameters);
-        flywheelEncoder = flywheelMotor1.getEncoder();
-        flywheelController = flywheelMotor1.getClosedLoopController();
+            .velocityConversionFactor(1 / ShooterConstants.FLYWHEEL_GEAR_RATIO).quadratureAverageDepth(10)
+            .quadratureMeasurementPeriod(10).uvwAverageDepth(5).uvwMeasurementPeriod(8)
+        flywheelConfig.closedLoop.pid(
+            ShooterConstants.FLYWHEEL_kP,
+            ShooterConstants.FLYWHEEL_kI,
+            ShooterConstants.FLYWHEEL_kD,
+            ClosedLoopSlot.kSlot0
+        ).apply(
+            FeedForwardConfig().sva(
+                ShooterConstants.FLYWHEEL_kS,
+                ShooterConstants.FLYWHEEL_kV,
+                ShooterConstants.FLYWHEEL_kA,
+                ClosedLoopSlot.kSlot0
+            )
+        ).apply(
+            MAXMotionConfig().maxAcceleration(
+                ShooterConstants.FLYWHEEL_MAX_ACCELERATION, ClosedLoopSlot.kSlot0
+            )
+        )
+        flywheelConfig.closedLoop.pid(
+            ShooterConstants.FLYWHEEL_kP,
+            ShooterConstants.FLYWHEEL_kI,
+            ShooterConstants.FLYWHEEL_kD,
+            ClosedLoopSlot.kSlot1
+        ).apply(
+            FeedForwardConfig().sva(
+                ShooterConstants.FLYWHEEL_kS,
+                ShooterConstants.FLYWHEEL_kV,
+                ShooterConstants.FLYWHEEL_kA,
+                ClosedLoopSlot.kSlot1
+            )
+        ).apply(
+            MAXMotionConfig().maxAcceleration(
+                ShooterConstants.FLYWHEEL_MAX_ACCELERATION * 10000, ClosedLoopSlot.kSlot1
+            )
+        )
+        flywheelMotor1.configure(
+            flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+        flywheelConfig.follow(flywheelMotor1)
+        flywheelMotor2.configure(
+            flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+        flywheelMotor3.configure(
+            flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters
+        )
+        flywheelEncoder = flywheelMotor1.encoder
+        flywheelController = flywheelMotor1.closedLoopController
 
-        SparkMaxConfig hoodConfig = new SparkMaxConfig();
-        hoodConfig.smartCurrentLimit(ShooterConstants.HOOD_CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false);
+        val hoodConfig = SparkMaxConfig()
+        hoodConfig.smartCurrentLimit(ShooterConstants.HOOD_CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(false)
         hoodConfig.encoder.positionConversionFactor(1 / ShooterConstants.HOOD_GEAR_RATIO)
-                .velocityConversionFactor(1 / 60.0 / ShooterConstants.HOOD_GEAR_RATIO);
+            .velocityConversionFactor(1 / 60.0 / ShooterConstants.HOOD_GEAR_RATIO)
         hoodConfig.alternateEncoder.positionConversionFactor(1 / ShooterConstants.HERRINGBONE_RATIO)
-                .velocityConversionFactor(1 / 60.0 / ShooterConstants.HERRINGBONE_RATIO);
-        hoodConfig.closedLoop.pid(ShooterConstants.HOOD_kP, ShooterConstants.HOOD_kI, ShooterConstants.HOOD_kD)
-                .apply(new FeedForwardConfig().svacr(ShooterConstants.HOOD_kS, ShooterConstants.HOOD_kV,
-                        ShooterConstants.HOOD_kA, ShooterConstants.HOOD_kG, 1))
-                .apply(new MAXMotionConfig().cruiseVelocity(ShooterConstants.HOOD_CRUISE_VELOCITY)
-                        .maxAcceleration(ShooterConstants.HOOD_MAX_ACCELERATION)
-                        .allowedProfileError(ShooterConstants.HOOD_ALLOWED_PROFILE_ERROR));
-        hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, com.revrobotics.PersistMode.kPersistParameters);
-        hoodEncoder = hoodMotor.getEncoder();
-        hoodController = hoodMotor.getClosedLoopController();
+            .velocityConversionFactor(1 / 60.0 / ShooterConstants.HERRINGBONE_RATIO)
+        hoodConfig.closedLoop.pid(ShooterConstants.HOOD_kP, ShooterConstants.HOOD_kI, ShooterConstants.HOOD_kD).apply(
+            FeedForwardConfig().svacr(
+                ShooterConstants.HOOD_kS,
+                ShooterConstants.HOOD_kV,
+                ShooterConstants.HOOD_kA,
+                ShooterConstants.HOOD_kG,
+                1.0
+            )
+        ).apply(
+            MAXMotionConfig().cruiseVelocity(ShooterConstants.HOOD_CRUISE_VELOCITY)
+                .maxAcceleration(ShooterConstants.HOOD_MAX_ACCELERATION)
+                .allowedProfileError(ShooterConstants.HOOD_ALLOWED_PROFILE_ERROR)
+        )
+        hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+        hoodEncoder = hoodMotor.encoder
+        hoodController = hoodMotor.closedLoopController
 
-        quadEncoder.setDistancePerPulse(1 / ShooterConstants.HERRINGBONE_RATIO / 2048);
+        quadEncoder.distancePerPulse = 1 / ShooterConstants.HERRINGBONE_RATIO / 2048
     }
 
-    public void setFlywheelVoltage(double voltage) {
-        useProfile = true;
-        flywheelMotor1.setVoltage(voltage);
+    override fun setFlywheelVoltage(voltage: Double) {
+        flywheelMotor1.setVoltage(voltage)
     }
 
-    public void setHoodVoltage(double voltage) {
-        hoodMotor.setVoltage(voltage);
+    override fun setHoodVoltage(voltage: Double) {
+        hoodMotor.setVoltage(voltage)
     }
 
-    public void setFlywheelVelocity(AngularVelocity velocity) {
-        if (RPM.of(flywheelEncoder.getVelocity()).isNear(velocity, ShooterConstants.TOLERANCE))
-            useProfile = false;
-        if (!useProfile)
-            flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl,
-                    ClosedLoopSlot.kSlot1);
-        else
-            flywheelController.setSetpoint(velocity.in(RPM), ControlType.kMAXMotionVelocityControl,
-                    ClosedLoopSlot.kSlot0);
+    override fun setFlywheelVelocity(velocity: AngularVelocity) {
+        if (flywheelEncoder.velocity.rpm.isNear(velocity, ShooterConstants.TOLERANCE)) useProfile = false
+        if (!useProfile) flywheelController.setSetpoint(
+            velocity.`in`(RPM), ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot1
+        )
+        else flywheelController.setSetpoint(
+            velocity.`in`(RPM), ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0
+        )
     }
 
-    public void setHoodPosition(Rotation2d position) {
-        hoodController.setSetpoint(position.getRotations(), ControlType.kMAXMotionPositionControl);
+    override fun setHoodPosition(position: Rotation2d) {
+        hoodController.setSetpoint(position.rotations, ControlType.kMAXMotionPositionControl)
     }
 
-    public void resetEncoder(Rotation2d position) {
-        hoodEncoder.setPosition(position.getRotations());
-        quadEncoder.reset();
-        offset = position;
+    override fun resetEncoder(position: Rotation2d) {
+        hoodEncoder.position = position.rotations
+        quadEncoder.reset()
+        offset = position
     }
 
-    public void updateInputs(ShooterIOInputs inputs) {
-        inputs.setFlywheelVelocity(RPM.of(flywheelEncoder.getVelocity()));
-        inputs.setFlywheelSetpoint(RPM.of(flywheelController.getMAXMotionSetpointVelocity()));
-        
-        inputs.getFlywheelAppliedVoltages()[0] = flywheelMotor1.getAppliedOutput() * flywheelMotor1.getBusVoltage();
-        inputs.getFlywheelAppliedVoltages()[1] = flywheelMotor2.getAppliedOutput() * flywheelMotor2.getBusVoltage();
-        inputs.getFlywheelAppliedVoltages()[2] = flywheelMotor3.getAppliedOutput() * flywheelMotor3.getBusVoltage();
-        inputs.getFlywheelCurrents()[0] = flywheelMotor1.getOutputCurrent();
-        inputs.getFlywheelCurrents()[1] = flywheelMotor2.getOutputCurrent();
-        inputs.getFlywheelCurrents()[2] = flywheelMotor3.getOutputCurrent();
-        inputs.getFlywheelTemperatures()[0] = flywheelMotor1.getMotorTemperature();
-        inputs.getFlywheelTemperatures()[1] = flywheelMotor2.getMotorTemperature();
-        inputs.getFlywheelTemperatures()[2] = flywheelMotor3.getMotorTemperature();
+    override fun updateInputs(inputs: ShooterIO.ShooterIOInputs) {
+        inputs.flywheelVelocity = flywheelEncoder.velocity.rpm
+        inputs.flywheelSetpoint = flywheelController.setpoint.rpm
+        inputs.flywheelAppliedVoltages[0] = flywheelMotor1.appliedOutput * flywheelMotor1.busVoltage
+        inputs.flywheelAppliedVoltages[1] = flywheelMotor2.appliedOutput * flywheelMotor2.busVoltage
+        inputs.flywheelAppliedVoltages[2] = flywheelMotor3.appliedOutput * flywheelMotor3.busVoltage
+        inputs.flywheelCurrents[0] = flywheelMotor1.outputCurrent
+        inputs.flywheelCurrents[1] = flywheelMotor2.outputCurrent
+        inputs.flywheelCurrents[2] = flywheelMotor3.outputCurrent
+        inputs.flywheelTemperatures[0] = flywheelMotor1.motorTemperature
+        inputs.flywheelTemperatures[1] = flywheelMotor2.motorTemperature
+        inputs.flywheelTemperatures[2] = flywheelMotor3.motorTemperature
 
-        inputs.setHoodPosition(Rotation2d.fromRotations(hoodEncoder.getPosition()));
-        inputs.setEncoderPosition(Rotation2d.fromRotations(quadEncoder.getDistance()).plus(offset));
-        inputs.setHoodVelocity(RotationsPerSecond.of(hoodEncoder.getVelocity()));
-        inputs.setHoodAppliedVoltage(hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage());
-        inputs.setHoodCurrent(hoodMotor.getOutputCurrent());
-        inputs.setHoodTemperature(hoodMotor.getMotorTemperature());
+        inputs.hoodPosition = Rotation2d.fromRotations(hoodEncoder.position)
+        inputs.encoderPosition = Rotation2d.fromRotations(quadEncoder.distance + offset.rotations)
+        inputs.hoodAppliedVoltage = hoodMotor.appliedOutput * hoodMotor.busVoltage
+        inputs.hoodCurrent = hoodMotor.outputCurrent
+        inputs.hoodTemperature = hoodMotor.motorTemperature
+        inputs.hoodVelocity = hoodEncoder.velocity.rpm
 
-        inputs.setUseProfile(useProfile);
+        inputs.useProfile = useProfile
     }
 }
