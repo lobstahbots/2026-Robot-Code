@@ -1,140 +1,113 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.drive
 
-package frc.robot.subsystems.drive;
+import com.lobstahbots.units.*
+import com.revrobotics.AbsoluteEncoder
+import com.revrobotics.PersistMode
+import com.revrobotics.REVLibError
+import com.revrobotics.RelativeEncoder
+import com.revrobotics.ResetMode
+import com.revrobotics.spark.SparkLowLevel
+import com.revrobotics.spark.config.EncoderConfig
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
+import com.revrobotics.spark.config.SparkMaxConfig
+import edu.wpi.first.math.geometry.Rotation2d
+import frc.robot.Constants
+import frc.robot.subsystems.drive.SwerveModuleIO.ModuleIOInputs
+import frc.robot.util.tempControl.MonitoredSparkMax
+import frc.robot.util.tempControl.TemperatureMonitor
 
-import java.util.Arrays;
-
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.REVLibError;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.EncoderConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.RobotConstants;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.util.tempControl.MonitoredSparkMax;
-import frc.robot.util.tempControl.TemperatureMonitor;
-
-public class SwerveModuleIOSparkMax implements SwerveModuleIO {
-    private final MonitoredSparkMax angleMotor;
-    private final MonitoredSparkMax driveMotor;
-    private final RelativeEncoder drivingEncoder;
-    private final AbsoluteEncoder angleAbsoluteEncoder;
-    private Rotation2d angularOffset;
-    private final int moduleID;
-    private final TemperatureMonitor monitor;
-
-    /**
-     * Creates a new SwerveModule for real cases.
-     * 
-     * @param moduleID             The module number (0-3).
-     * @param angleMotorID         The CAN ID of the motor controlling the angle.
-     * @param driveMotorID         The CAN ID of the motor controlling drive speed.
-     * @param angularOffsetDegrees The offset angle in degrees.
-     */
-    public SwerveModuleIOSparkMax(int moduleID, String name, int angleMotorID, int driveMotorID,
-            double angularOffsetDegrees, boolean inverted) {
-        this.moduleID = moduleID;
-
-        this.angleMotor = new MonitoredSparkMax(angleMotorID, MotorType.kBrushless, name + " angle motor");
-        this.driveMotor = new MonitoredSparkMax(driveMotorID, MotorType.kBrushless, name + " drive motor");
-
-        var driveEncoderConfig = new EncoderConfig()
-                .positionConversionFactor(SwerveConstants.DRIVING_ENCODER_POSITION_CONVERSION_FACTOR)
-                .velocityConversionFactor(SwerveConstants.DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR);
-        var driveMotorConfig = new SparkMaxConfig().apply(driveEncoderConfig)
-                .smartCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT).idleMode(IdleMode.kBrake)
-                .voltageCompensation(12).inverted(false);
-        driveMotor.configure(driveMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        var angleMotorConfig = new SparkMaxConfig().smartCurrentLimit(DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT)
-                .idleMode(IdleMode.kBrake).voltageCompensation(12).inverted(inverted);
-        angleMotorConfig.absoluteEncoder
-                .positionConversionFactor(SwerveConstants.TURNING_ENCODER_POSITION_CONVERSION_FACTOR)
-                .velocityConversionFactor(SwerveConstants.TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR);
-        angleMotor.configure(angleMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        drivingEncoder = driveMotor.getEncoder();
-        angleAbsoluteEncoder = angleMotor.getAbsoluteEncoder();
-
-        monitor = new TemperatureMonitor(Arrays.asList(driveMotor, angleMotor));
-
-        this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees);
-        drivingEncoder.setPosition(0);
-        resetEncoders();
-    }
-
-    /** Stops the module motors. */
-    public void stopMotors() {
-        angleMotor.stopMotor();
-        driveMotor.stopMotor();
-    }
-
-    /**
-     * Returns the current state of the module.
-     *
-     * @return The current encoder velocities of the module as a
-     *         {@link SwerveModuleState}.
-     */
-    public SwerveModuleState getState() {
-        return new SwerveModuleState(drivingEncoder.getVelocity() * RobotConstants.WHEEL_DIAMETER * Math.PI,
-                new Rotation2d(angleAbsoluteEncoder.getPosition() + angularOffset.getRadians()));
-    }
-
+/**
+ * Creates a new SwerveModule for real cases.
+ *
+ * @param moduleID             The module number (0-3).
+ * @param angleMotorID         The CAN ID of the motor controlling the angle.
+ * @param driveMotorID         The CAN ID of the motor controlling drive speed.
+ * @param angularOffsetDegrees The offset angle in degrees.
+ */
+class SwerveModuleIOSparkMax(
     /**
      * Returns the module ID.
-     *
+     * 
      * @return The ID number of the module (0-3).
      */
-    public int getModuleID() {
-        return moduleID;
+    val moduleID: Int, name: String?, angleMotorID: Int, driveMotorID: Int,
+    angularOffsetDegrees: Double, inverted: Boolean
+) : SwerveModuleIO {
+    private val angleMotor: MonitoredSparkMax = MonitoredSparkMax(
+        angleMotorID, SparkLowLevel.MotorType.kBrushless,
+        "$name angle motor"
+    )
+    private val driveMotor: MonitoredSparkMax = MonitoredSparkMax(
+        driveMotorID, SparkLowLevel.MotorType.kBrushless,
+        "$name drive motor"
+    )
+    private val drivingEncoder: RelativeEncoder
+    private val angleAbsoluteEncoder: AbsoluteEncoder
+    private val angularOffset: Rotation2d
+    private val monitor: TemperatureMonitor
+
+    init {
+        val driveEncoderConfig = EncoderConfig()
+            .positionConversionFactor(Constants.SwerveConstants.DRIVING_ENCODER_POSITION_CONVERSION_FACTOR)
+            .velocityConversionFactor(Constants.SwerveConstants.DRIVING_ENCODER_VELOCITY_CONVERSION_FACTOR)
+        val driveMotorConfig = SparkMaxConfig().apply(driveEncoderConfig)
+            .smartCurrentLimit(Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT).idleMode(IdleMode.kBrake)
+            .voltageCompensation(12.0).inverted(false)
+        driveMotor.configure(driveMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+
+        val angleMotorConfig = SparkMaxConfig().smartCurrentLimit(Constants.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT)
+            .idleMode(IdleMode.kBrake).voltageCompensation(12.0).inverted(inverted)
+        angleMotorConfig.absoluteEncoder
+            .positionConversionFactor(Constants.SwerveConstants.TURNING_ENCODER_POSITION_CONVERSION_FACTOR)
+            .velocityConversionFactor(Constants.SwerveConstants.TURNING_ENCODER_VELOCITY_CONVERSION_FACTOR)
+        angleMotor.configure(angleMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+
+        drivingEncoder = driveMotor.getEncoder()
+        angleAbsoluteEncoder = angleMotor.getAbsoluteEncoder()
+
+        monitor = TemperatureMonitor(listOf<TemperatureMonitor.Monitorable>(driveMotor, angleMotor))
+
+        this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees)
+        drivingEncoder.position = 0.0
+        resetEncoders()
     }
 
-    /**
-     * Returns the current position of the module.
-     *
-     * @return The current encoder positions position of the module as a
-     *         {@link SwerveModulePosition}.
-     */
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(drivingEncoder.getPosition(),
-                new Rotation2d(angleAbsoluteEncoder.getPosition() + angularOffset.getRadians()));
+    /** Stops the module motors.  */
+    fun stopMotors() {
+        angleMotor.stopMotor()
+        driveMotor.stopMotor()
     }
 
     /**
      * Sets the braking mode of the driving motor.
      * 
-     * @param mode the {@link IdleMode} to set motors to.
+     * @param mode the [IdleMode] to set motors to.
      */
-    public void setDriveIdleMode(IdleMode mode) {
-        driveMotor.configure(new SparkMaxConfig().idleMode(mode), ResetMode.kNoResetSafeParameters,
-                PersistMode.kPersistParameters);
+    override fun setDriveIdleMode(mode: IdleMode) {
+        driveMotor.configure(
+            SparkMaxConfig().idleMode(mode), ResetMode.kNoResetSafeParameters,
+            PersistMode.kPersistParameters
+        )
     }
 
     /**
      * Sets the braking mode of the turning motor.
      * 
-     * @param mode the {@link IdleMode} to set motors to.
+     * @param mode the [IdleMode] to set motors to.
      */
-    public void setTurnIdleMode(IdleMode mode) {
-        angleMotor.configure(new SparkMaxConfig().idleMode(mode), ResetMode.kNoResetSafeParameters,
-                PersistMode.kPersistParameters);
+    override fun setTurnIdleMode(mode: IdleMode) {
+        angleMotor.configure(
+            SparkMaxConfig().idleMode(mode), ResetMode.kNoResetSafeParameters,
+            PersistMode.kPersistParameters
+        )
     }
 
-    /** Zeroes the drive encoder. */
-    public void resetEncoders() {
-        drivingEncoder.setPosition(0);
+    /** Zeroes the drive encoder.  */
+    fun resetEncoders() {
+        drivingEncoder.position = 0.0
     }
 
     /**
@@ -142,44 +115,47 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
      * 
      * @param volts The voltage the motor should be set to.
      */
-    public void setDriveVoltage(double volts) {
-        driveMotor.setVoltage(volts);
-    }
+    override fun setDriveVoltage(volts: Double) =
+        driveMotor.setVoltage(volts)
+
 
     /**
      * Sets voltage of turn motor.
      * 
      * @param volts The voltage the motor should be set to.
      */
-    public void setTurnVoltage(double volts) {
-        angleMotor.setVoltage(volts);
+    override fun setTurnVoltage(volts: Double) {
+        angleMotor.setVoltage(volts)
     }
 
-    public void updateInputs(ModuleIOInputs inputs) {
-        inputs.drivePosition = driveMotor.getLastError() == REVLibError.kOk
-                ? Rotation2d.fromRotations(drivingEncoder.getPosition())
-                : inputs.drivePosition;
-        inputs.driveVelocityRadPerSec = driveMotor.getLastError() == REVLibError.kOk
-                ? Units.rotationsToRadians(drivingEncoder.getVelocity())
-                : inputs.driveVelocityRadPerSec;
-        inputs.driveAppliedVolts = driveMotor.getAppliedOutput() * driveMotor.getBusVoltage();
-        inputs.driveStatorCurrentAmps = driveMotor.getOutputCurrent();
-        inputs.driveSupplyCurrentAmps = driveMotor.getOutputCurrent() * driveMotor.getAppliedOutput(); // estimate
-        inputs.driveTemperature = driveMotor.getMotorTemperature();
+    override fun updateInputs(inputs: ModuleIOInputs) {
+        inputs.drivePosition = if (driveMotor.lastError == REVLibError.kOk)
+            drivingEncoder.position.rotations
+        else
+            inputs.drivePosition
+        inputs.driveVelocity = if (driveMotor.lastError == REVLibError.kOk)
+            drivingEncoder.velocity.rotationsPerSecond
+        else
+            inputs.driveVelocity
+        inputs.driveAppliedVoltage = driveMotor.appliedOutput.value * driveMotor.busVoltage.volts
+        inputs.driveStatorCurrent = driveMotor.outputCurrent.amps
+        inputs.driveSupplyCurrent = driveMotor.outputCurrent.amps * driveMotor.appliedOutput // estimate
+        inputs.driveTemperature = driveMotor.motorTemperature.celsius
 
-        inputs.turnAbsolutePosition = angleMotor.getLastError() == REVLibError.kOk
-                ? Rotation2d.fromRadians(-angleAbsoluteEncoder.getPosition() - angularOffset.getRadians())
-                : inputs.turnPosition;
-        inputs.turnPosition = inputs.turnAbsolutePosition;
-        inputs.turnVelocityRadPerSec = angleMotor.getLastError() == REVLibError.kOk ? angleAbsoluteEncoder.getVelocity()
-                : inputs.turnVelocityRadPerSec;
-        inputs.turnAppliedVolts = angleMotor.getAppliedOutput() * angleMotor.getBusVoltage();
-        inputs.turnCurrentAmps = angleMotor.getOutputCurrent();
-        inputs.turnTemperature = angleMotor.getMotorTemperature();
-        inputs.angularOffset = angularOffset;
+        inputs.turnAbsolutePosition = if (angleMotor.lastError == REVLibError.kOk)
+            Rotation2d.fromRadians(-angleAbsoluteEncoder.position - angularOffset.radians)
+        else
+            inputs.turnPosition
+        inputs.turnPosition = inputs.turnAbsolutePosition
+        inputs.turnVelocity = if (angleMotor.lastError == REVLibError.kOk)
+            angleAbsoluteEncoder.velocity.radiansPerSecond
+        else
+            inputs.turnVelocity
+        inputs.turnAppliedVoltage = angleMotor.appliedOutput.value * angleMotor.busVoltage.volts
+        inputs.turnCurrent = angleMotor.outputCurrent.amps
+        inputs.turnTemperature = angleMotor.motorTemperature.celsius
+        inputs.angularOffset = angularOffset
     }
 
-    public void periodic() {
-        monitor.monitor();
-    }
+    override fun periodic() = monitor.monitor()
 }

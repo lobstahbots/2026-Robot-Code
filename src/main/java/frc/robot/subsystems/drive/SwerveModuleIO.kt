@@ -1,55 +1,52 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.drive
 
-package frc.robot.subsystems.drive;
+import com.lobstahbots.junction.AutoLogKt
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.kinematics.SwerveModuleState
+import com.lobstahbots.units.*
 
-import org.littletonrobotics.junction.AutoLog;
+interface SwerveModuleIO {
+    @AutoLogKt
+    open class ModuleIOInputs {
+        var drivePosition = 0.rotations
+        var driveVelocity = 0.radiansPerSecond
+        var driveAppliedVoltage = 0.volts
+        var driveStatorCurrent = 0.amps
+        var driveSupplyCurrent = 0.amps
+        var driveTemperature = 25.celsius
 
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-
-public interface SwerveModuleIO {
-    @AutoLog
-    public static class ModuleIOInputs {
-        public Rotation2d drivePosition = new Rotation2d();
-        public double driveVelocityRadPerSec = 0.0;
-        public double driveAppliedVolts = 0.0;
-        public double driveStatorCurrentAmps = 0.0;
-        public double driveSupplyCurrentAmps = 0.0;
-        public double driveTemperature = 25.0;
-
-        public Rotation2d turnAbsolutePosition = new Rotation2d();
-        public Rotation2d turnPosition = new Rotation2d();
-        public double turnVelocityRadPerSec = 0.0;
-        public double turnAppliedVolts = 0.0;
-        public double turnCurrentAmps = 0.0;
-        public double turnTemperature = 25.0;
-        public Rotation2d angularOffset = new Rotation2d();
+        var turnAbsolutePosition = Rotation2d()
+        var turnPosition = Rotation2d()
+        var turnVelocity = 0.radiansPerSecond
+        var turnAppliedVoltage = 0.volts
+        var turnCurrent = 0.amps
+        var turnTemperature = 25.celsius
+        var angularOffset = Rotation2d()
     }
 
-    public default void updateInputs(ModuleIOInputs inputs) {};
+    fun updateInputs(inputs: ModuleIOInputs) {}
 
-    /** Run the drive motor at the specified voltage. */
-    public default void setDriveVoltage(double volts) {};
+    /** Run the drive motor at the specified voltage.  */
+    fun setDriveVoltage(volts: Double) {}
 
-    /** Run the turn motor at the specified voltage. */
-    public default void setTurnVoltage(double volts) {};
+    /** Run the turn motor at the specified voltage.  */
+    fun setTurnVoltage(volts: Double) {}
 
-    /** Set the angle to the angle specified in the module state. */
-    public default void setAngle(SwerveModuleState optimizedDesiredState) {}
+    /** Set the angle to the angle specified in the module state.  */
+    fun setAngle(optimizedDesiredState: SwerveModuleState) {}
 
-    /** Set the drive speed to the angle specified in the module state. */
-    public default void setDriveSpeed(SwerveModuleState optimizedDesiredState, boolean isOpenLoop) {}
+    /** Set the drive speed to the angle specified in the module state.  */
+    fun setDriveSpeed(optimizedDesiredState: SwerveModuleState, isOpenLoop: Boolean) {}
 
-    /** Enable or disable brake mode on the drive motor. */
-    public default void setDriveIdleMode(IdleMode mode) {}
+    /** Enable or disable brake mode on the drive motor.  */
+    fun setDriveIdleMode(mode: IdleMode) {}
 
-    /** Enable or disable brake mode on the turn motor. */
-    public default void setTurnIdleMode(IdleMode mode) {}
+    /** Enable or disable brake mode on the turn motor.  */
+    fun setTurnIdleMode(mode: IdleMode) {}
 
-    public default void periodic() {}
-
+    fun periodic() {}
 }

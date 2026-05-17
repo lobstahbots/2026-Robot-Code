@@ -1,69 +1,67 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.drive
 
-package frc.robot.subsystems.drive;
+import edu.wpi.first.math.MathUtil
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.wpilibj.DriverStation
+import frc.robot.Constants
+import frc.robot.Constants.SimConstants
+import frc.robot.SimShared
+import frc.robot.subsystems.drive.SwerveModuleIO.ModuleIOInputs
+import org.ironmaple.simulation.drivesims.SwerveModuleSimulation
+import org.ironmaple.simulation.motorsims.SimulatedMotorController.GenericMotorController
+import com.lobstahbots.units.*
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
+class SwerveModuleIOSim(
+    angularOffsetDegrees: Double,
+    /** Creates a new SwerveModuleSim.  */
+    private val moduleSimulation: SwerveModuleSimulation, private val id: Int
+) : SwerveModuleIO {
+    private val driveMotor: GenericMotorController
+    private val angleMotor: GenericMotorController
 
-import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
-import org.ironmaple.simulation.motorsims.SimulatedMotorController;
+    private var driveAppliedVolts = 0.0
+    private var turnAppliedVolts = 0.0
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.SimShared;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.SimConstants;
+    private val angularOffset: Rotation2d
 
-public class SwerveModuleIOSim implements SwerveModuleIO {
-    /** Creates a new SwerveModuleSim. */
-    private final SwerveModuleSimulation moduleSimulation;
-    // private final Simulated
-    private final SimulatedMotorController.GenericMotorController driveMotor;
-    private final SimulatedMotorController.GenericMotorController angleMotor;
-
-    private double driveAppliedVolts = 0.0;
-    private double turnAppliedVolts = 0.0;
-
-    private Rotation2d angularOffset;
-
-    private final int id;
-
-    public SwerveModuleIOSim(double angularOffsetDegrees, SwerveModuleSimulation moduleSimulation, int id) {
-        this.moduleSimulation = moduleSimulation;
-        this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees);
+    init {
+        this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees)
         driveMotor = moduleSimulation.useGenericMotorControllerForDrive()
-                .withCurrentLimit(Amps.of(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT));
+            .withCurrentLimit(Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT.amps)
         angleMotor = moduleSimulation.useGenericControllerForSteer()
-                .withCurrentLimit(Amps.of(DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT));
-        this.id = id;
+            .withCurrentLimit(Constants.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT.amps)
     }
 
-    public void updateInputs(ModuleIOInputs inputs) {
+    override fun updateInputs(inputs: ModuleIOInputs) {
         if (DriverStation.isDisabled()) {
-            setDriveVoltage(0);
-            setTurnVoltage(0);
+            setDriveVoltage(0.0)
+            setTurnVoltage(0.0)
         }
 
-        inputs.turnAbsolutePosition = moduleSimulation.getSteerAbsoluteFacing();
-        inputs.turnPosition = inputs.turnAbsolutePosition;
-        inputs.drivePosition = new Rotation2d(moduleSimulation.getDriveWheelFinalPosition()
-                .plus(moduleSimulation.getDriveWheelFinalSpeed().times(Seconds.of(SimConstants.LOOP_TIME))));
-        inputs.driveVelocityRadPerSec = moduleSimulation.getDriveWheelFinalSpeed().in(RadiansPerSecond);
-        inputs.driveAppliedVolts = driveAppliedVolts;
-        inputs.driveStatorCurrentAmps = moduleSimulation.getDriveMotorStatorCurrent().in(Amps);
-        inputs.driveSupplyCurrentAmps = moduleSimulation.getDriveMotorSupplyCurrent().in(Amps);
-        inputs.turnVelocityRadPerSec = moduleSimulation.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
-        inputs.turnAppliedVolts = turnAppliedVolts;
-        inputs.turnCurrentAmps = moduleSimulation.getSteerMotorSupplyCurrent().in(Amps);
-        inputs.angularOffset = angularOffset;
+        inputs.turnAbsolutePosition = moduleSimulation.steerAbsoluteFacing
+        inputs.turnPosition = inputs.turnAbsolutePosition
+        inputs.drivePosition = moduleSimulation.driveWheelFinalPosition
+            .plus(moduleSimulation.driveWheelFinalSpeed.times(SimConstants.LOOP_TIME.seconds))
+        inputs.driveVelocity = moduleSimulation.driveWheelFinalSpeed
+        inputs.driveAppliedVoltage = driveAppliedVolts.volts
+        inputs.driveStatorCurrent = moduleSimulation.driveMotorStatorCurrent
+        inputs.driveSupplyCurrent = moduleSimulation.driveMotorSupplyCurrent
+        inputs.turnVelocity = moduleSimulation.steerAbsoluteEncoderSpeed
+        inputs.turnAppliedVoltage = turnAppliedVolts.volts
+        inputs.turnCurrent = moduleSimulation.steerMotorSupplyCurrent
+        inputs.angularOffset = angularOffset
 
-        SimShared.powerDistributionSim.setCurrent(SimConstants.SWERVE_CHANNELS[2 * id], inputs.driveStatorCurrentAmps);
-        SimShared.powerDistributionSim.setCurrent(SimConstants.SWERVE_CHANNELS[2 * id + 1], inputs.turnCurrentAmps);
+        SimShared.powerDistributionSim.setCurrent(
+            SimConstants.SWERVE_CHANNELS[2 * id],
+            inputs.driveStatorCurrent.baseUnitMagnitude()
+        )
+        SimShared.powerDistributionSim.setCurrent(
+            SimConstants.SWERVE_CHANNELS[2 * id + 1],
+            inputs.turnCurrent.baseUnitMagnitude()
+        )
     }
 
     /**
@@ -71,9 +69,9 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
      * 
      * @param volts The voltage the motor should be set to.
      */
-    public void setDriveVoltage(double volts) {
-        driveAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
-        driveMotor.requestVoltage(Volts.of(driveAppliedVolts));
+    override fun setDriveVoltage(volts: Double) {
+        driveAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0)
+        driveMotor.requestVoltage(driveAppliedVolts.volts)
     }
 
     /**
@@ -81,8 +79,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
      * 
      * @param volts The voltage the motor should be set to.
      */
-    public void setTurnVoltage(double volts) {
-        turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
-        angleMotor.requestVoltage(Volts.of(turnAppliedVolts));
+    override fun setTurnVoltage(volts: Double) {
+        turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0)
+        angleMotor.requestVoltage(driveAppliedVolts.volts)
     }
 }
