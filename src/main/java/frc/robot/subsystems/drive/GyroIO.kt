@@ -1,33 +1,30 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.drive
 
-package frc.robot.subsystems.drive;
+import com.lobstahbots.junction.AutoLogKt
+import edu.wpi.first.math.geometry.Rotation2d
 
-import org.littletonrobotics.junction.AutoLog;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-
-/** Add your docs here. */
-public interface GyroIO {
-    @AutoLog
-    public static class GyroIOInputs {
-        public boolean connected = false;
-        public Rotation2d rollPosition = new Rotation2d();
-        public Rotation2d pitchPosition = new Rotation2d();
-        public Rotation2d yawPosition = new Rotation2d();
-        public double rollVelocity = 0.0;
-        public double pitchVelocity = 0.0;
-        public double yawVelocity = 0.0;
-        public boolean isCalibrating = true;
+/** Add your docs here.  */
+interface GyroIO {
+    @AutoLogKt
+    open class GyroIOInputs {
+        var connected: Boolean = false
+        var rollPosition: Rotation2d = Rotation2d()
+        var pitchPosition: Rotation2d = Rotation2d()
+        var yawPosition: Rotation2d = Rotation2d()
+        var rollVelocity: Double = 0.0
+        var pitchVelocity: Double = 0.0
+        var yawVelocity: Double = 0.0
+        var isCalibrating: Boolean = true
     }
 
     /* Zeroes the gyro. */
-    public default void zeroGyro() {}
+    fun zeroGyro() {}
 
-    public default boolean isCalibrating() {
-        return false;
-    }
+    val isCalibrating: Boolean
+        get() = false
 
-    public default void updateInputs(GyroIOInputs inputs) {}
+    fun updateInputs(inputs: GyroIOInputs) {}
 }

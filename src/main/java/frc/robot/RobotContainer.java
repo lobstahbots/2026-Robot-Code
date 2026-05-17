@@ -74,7 +74,7 @@ public class RobotContainer {
     private final Shooter shooter;
 
     private final AutonSelector<Object> autoChooser = new AutonSelector<>("Auto Chooser", "Do Nothing", List.of(),
-            () -> Commands.none());
+            Commands::none);
     private final AutoFactory autoFactory;
 
     private SwerveDriveSimulation driveSimulation = null;
