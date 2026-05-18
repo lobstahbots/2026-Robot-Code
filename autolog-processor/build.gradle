@@ -1,0 +1,22 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation "com.google.devtools.ksp:symbol-processing-api:2.3.7"
+    implementation "com.squareup:javapoet:1.13.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    jvmToolchain(17)
+}

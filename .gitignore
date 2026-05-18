@@ -140,6 +140,9 @@ $RECYCLE.BIN/
 .gradle
 /build/
 
+autolog-processor/build/
+autolog-processor/.gradle
+
 # Ignore Gradle GUI config
 gradle-app.setting
 
@@ -190,3 +193,6 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+
+buildSrc/build
+.kotlin

@@ -2,6 +2,8 @@ plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "com.peterabeles.gversion" version "1.10"
+    id "org.jetbrains.kotlin.jvm" version "2.3.21"
+    id "com.google.devtools.ksp" version "2.3.7"
 }
 
 java {
@@ -65,6 +67,7 @@ dependencies {
     annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
+    ksp project(":autolog-processor")
 
     roborioDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.roborio)
     roborioDebug wpi.java.vendor.jniDebug(wpi.platforms.roborio)
@@ -87,6 +90,8 @@ dependencies {
 
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 project.compileJava.dependsOn(createVersionFile)
@@ -127,3 +132,20 @@ wpi.java.configureTestTasks(test)
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
+
+kotlin {
+    jvmToolchain(17)
+}
+
+def unitTask = tasks.register("generateUnit", GenerateUnitTask) {
+    sourceClassName = "edu.wpi.first.units.Units"
+    outputNamespace = "com.lobstahbots.units"
+    classpath.from(configurations.compileClasspath, configurations.runtimeClasspath)
+    outputDir = layout.buildDirectory.dir("generated/kotlin/units")
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(unitTask)
+}
+
+sourceSets.main.kotlin.srcDir(unitTask.flatMap { it.outputDir })

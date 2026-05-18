@@ -62,7 +62,7 @@ public class AutoFactory {
         this.indexer = indexer;
 
         AutoBuilder.configure(driveBase::getPose, driveBase::resetPose, driveBase::getRobotRelativeSpeeds,
-                (chassisSpeeds, driveFeedforwards) -> driveBase.driveRobotRelative(chassisSpeeds), driveController,
+                (chassisSpeeds, driveFeedforwards) -> driveBase.setRobotRelativeSpeeds(chassisSpeeds), driveController,
                 DriveConstants.ROBOT_CONFIG, () -> {
                     return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
                 }, driveBase);

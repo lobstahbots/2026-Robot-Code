@@ -64,5 +64,6 @@
   "java.debug.settings.onBuildFailureProceed": true,
   "wpilib.skipSelectSimulateExtension": true,
   "wpilib.autoStartRioLog": false,
-  "wpilib.selectDefaultSimulateExtension": true
+  "wpilib.selectDefaultSimulateExtension": true,
+  "java.compile.nullAnalysis.mode": "automatic"
 }

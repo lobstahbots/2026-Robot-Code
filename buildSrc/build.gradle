@@ -1,0 +1,8 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "com.squareup:kotlinpoet:2.3.0"
+    implementation "io.github.classgraph:classgraph:4.8.165"
+}
