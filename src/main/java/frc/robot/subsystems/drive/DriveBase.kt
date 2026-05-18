@@ -191,18 +191,18 @@ class DriveBase(
         cameras.forEach { camera ->
             camera.periodic()
             val estimatedPose = camera.getEstimatedPose(pose)
-            if (estimatedPose.pose.isPresent and (!hasSeenTag or (LobstahMath.getDistBetweenPoses(
-                    estimatedPose.pose.get(), pose
-                ) <= 8)) and (abs(
-                    estimatedPose.pose.get().z
-                ) < 0.3)
+            if (estimatedPose.pose != null && (!hasSeenTag || LobstahMath.getDistBetweenPoses(
+                    estimatedPose.pose, pose
+                ) <= 8) && abs(
+                    estimatedPose.pose.z
+                ) < 0.3
             ) {
                 if (!hasSeenTag) {
-                    pose = estimatedPose.pose.get().toPose2d()
+                    pose = estimatedPose.pose.toPose2d()
                     hasSeenTag = true
                 }
                 swerveOdometry.addVisionMeasurement(
-                    estimatedPose.pose.get().toPose2d(), estimatedPose.timestamp.get(), estimatedPose.stdev().get()
+                    estimatedPose.pose.toPose2d(), estimatedPose.timestamp!!, estimatedPose.stdev
                 )
                 Logger.recordOutput("Vision/" + camera.name + "Used", true)
             } else Logger.recordOutput("Vision/" + camera.name + "Used", false)
@@ -228,15 +228,15 @@ class DriveBase(
                 0.0
             )
         ).exp(
-                Twist3d(
-                    0.0,
-                    0.0,
-                    abs(gyroInputs.rollPosition.radians) * RobotConstants.TRACK_WIDTH / 2.0,
-                    gyroInputs.rollPosition.radians,
-                    0.0,
-                    0.0
-                )
+            Twist3d(
+                0.0,
+                0.0,
+                abs(gyroInputs.rollPosition.radians) * RobotConstants.TRACK_WIDTH / 2.0,
+                gyroInputs.rollPosition.radians,
+                0.0,
+                0.0
             )
+        )
         Logger.recordOutput("Odometry/Robot3d", robotPose3d)
         cameras.forEach { camera ->
             Logger.recordOutput("Vision/" + camera.name + "/Pose3d", robotPose3d.plus(camera.robotToCamera))
@@ -327,12 +327,12 @@ class DriveBase(
 
         // Calculate new linear velocity
         val linearVelocity = Pose2d(Translation2d(), linearDirection).transformBy(
-                Transform2d(
-                    linearMagnitude,
-                    0.0,
-                    Rotation2d()
-                )
-            ).translation
+            Transform2d(
+                linearMagnitude,
+                0.0,
+                Rotation2d()
+            )
+        ).translation
 
         if (assist && AlliancePoseMirror.mirrorPose2d(pose).x < FieldConstants.LinesVertical.neutralZoneNear) {
             val targetPose =
@@ -360,7 +360,7 @@ class DriveBase(
      * @return constructed command
      */
     fun relativeDrive(strafeX: Double, strafeY: Double, rotation: Double): Command {
-        val speeds = ChassisSpeeds(strafeX, strafeX, rotation)
+        val speeds = ChassisSpeeds(strafeX, strafeY, rotation)
         return run { robotRelativeSpeeds = speeds }.finallyDo(this::stopMotors)
     }
 }
