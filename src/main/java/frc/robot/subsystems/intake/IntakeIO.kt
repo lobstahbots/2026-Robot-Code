@@ -1,82 +1,79 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.intake
 
-import org.littletonrobotics.junction.AutoLog;
+import com.lobstahbots.junction.AutoLogKt
+import edu.wpi.first.math.geometry.Rotation2d
+import com.lobstahbots.units.*
 
-import edu.wpi.first.math.geometry.Rotation2d;
-
-public interface IntakeIO {
-
-    @AutoLog
-    public static class IntakeIOInputs {
-
+interface IntakeIO {
+    @AutoLogKt
+    open class IntakeIOInputs {
         /**
          * Velocity of intake arm in rotations/second
          */
-        public double armVelocity = 0.0;
+        var armVelocity = 0.rotationsPerSecond
 
         /**
          * Voltage of intake arm motor in volts
          */
-        public double armAppliedVoltage = 0.0;
+        var armAppliedVoltage = 0.volts
 
         /**
          * Current of intake arm motor in amperes
          */
-        public double armCurrentAmps = 0.0;
+        var armCurrent = 0.amps
 
         /**
          * Temperature of intake arm motor in celcius
          */
-        public double armTempCelcius = 0.0;
+        var armTemp = 0.celsius
 
         /**
          * Position of intake arm in rotations
          */
-        public Rotation2d armPosition = Rotation2d.kZero;
+        var armPosition: Rotation2d = Rotation2d.kZero
 
         /**
          * Velocity of roller motor in rotations/second
          */
-        public double rollerVelocity = 0.0;
+        var rollerVelocity = 0.rotationsPerSecond
 
         /**
          * Voltage of roller motor in volts
          */
-        public double rollerAppliedVoltage = 0.0;
+        var rollerAppliedVoltage = 0.volts
 
         /**
          * Current of roller motor in amperes
          */
-        public double rollerCurrentAmps = 0.0;
+        var rollerCurrent = 0.amps
 
         /**
-         * Temperature of roller motor in celcius
+         * Temperature of roller motor in Celsius
          */
-        public double rollerTempCelcius = 0.0;
+        var rollerTemp = 0.celsius
 
-        public boolean isDeployed = false;
+        var isDeployed: Boolean = false
     }
 
-    public default void updateInputs(IntakeIOInputs inputs) {}
+    fun updateInputs(inputs: IntakeIOInputs) {}
 
-    public default void stopArmMotor() {}
+    fun stopArmMotor() {}
 
-    public default void stopRollerMotor() {}
+    fun stopRollerMotor() {}
 
-    public default void setArmVoltage(double volts) {}
+    fun setArmVoltage(volts: Double) {}
 
-    public default void setRollerVoltage(double volts) {}
+    fun setRollerVoltage(volts: Double) {}
 
-    public default void setArmPosition(Rotation2d position) {}
+    fun setArmPosition(position: Rotation2d) {}
 
-    public default void setRollerSpeed(double speed) {}
+    fun setRollerSpeed(speed: Double) {}
 
-    public default void setArmIdleMode(boolean isBrake) {}
+    fun setArmIdleMode(isBrake: Boolean) {}
 
-    public default void setRollerIdleMode(boolean isBrake) {}
+    fun setRollerIdleMode(isBrake: Boolean) {}
 
-    public default void resetEncoder(Rotation2d position) {}
+    fun resetEncoder(position: Rotation2d) {}
 
-    public default void periodic() {};
-
+    fun periodic() {}
 }

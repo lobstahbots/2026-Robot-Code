@@ -1,116 +1,107 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.intake
 
-package frc.robot.subsystems.intake;
+import com.lobstahbots.units.*
+import com.revrobotics.PersistMode
+import com.revrobotics.RelativeEncoder
+import com.revrobotics.ResetMode
+import com.revrobotics.spark.SparkLowLevel
+import com.revrobotics.spark.SparkMax
+import com.revrobotics.spark.config.FeedForwardConfig
+import com.revrobotics.spark.config.MAXMotionConfig
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
+import com.revrobotics.spark.config.SparkMaxConfig
+import edu.wpi.first.math.controller.ProfiledPIDController
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.trajectory.TrapezoidProfile
+import frc.robot.Constants.IntakeConstants
+import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+class IntakeIOSparkMax(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
+    private val armMotor: SparkMax = SparkMax(armMotorID, SparkLowLevel.MotorType.kBrushless)
+    private val rollerMotor: SparkMax = SparkMax(rollerMotorID, SparkLowLevel.MotorType.kBrushless)
 
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+    private val armEncoder: RelativeEncoder
+    private val rollerEncoder: RelativeEncoder
 
-import com.revrobotics.spark.config.FeedForwardConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
+    private val controller = ProfiledPIDController(
+        IntakeConstants.kP, IntakeConstants.kI,
+        IntakeConstants.kD,
+        TrapezoidProfile.Constraints(IntakeConstants.CRUISE_VELOCITY, IntakeConstants.MAX_ACCELERATION)
+    )
 
-import frc.robot.Constants.IntakeConstants;
-
-public class IntakeIOSparkMax implements IntakeIO {
-    /** Creates a new Intake. */
-    private final SparkMax armMotor;
-    private final SparkMax rollerMotor;
-
-    private final RelativeEncoder armEncoder;
-    private final RelativeEncoder rollerEncoder;
-
-    private final ProfiledPIDController controller = new ProfiledPIDController(IntakeConstants.kP, IntakeConstants.kI,
-            IntakeConstants.kD,
-            new TrapezoidProfile.Constraints(IntakeConstants.CRUISE_VELOCITY, IntakeConstants.MAX_ACCELERATION));
-
-    public IntakeIOSparkMax(int armMotorID, int rollerMotorID) {
-        this.armMotor = new SparkMax(armMotorID, MotorType.kBrushless);
-        this.rollerMotor = new SparkMax(rollerMotorID, MotorType.kBrushless);
-
-        SparkMaxConfig config = new SparkMaxConfig();
+    init {
+        val config = SparkMaxConfig()
 
         config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder
-                .velocityConversionFactor(1 / 60.0);
+            .velocityConversionFactor(1 / 60.0)
 
-        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
 
         config.inverted(false).encoder.positionConversionFactor(1.0 / IntakeConstants.GEAR_RATIO)
-                .velocityConversionFactor(1 / 60.0 / IntakeConstants.GEAR_RATIO);
+            .velocityConversionFactor(1 / 60.0 / IntakeConstants.GEAR_RATIO)
         config.closedLoop.pid(IntakeConstants.kP, IntakeConstants.kI, IntakeConstants.kD)
-                .apply(new FeedForwardConfig().svacr(IntakeConstants.kS, IntakeConstants.kV, IntakeConstants.kA,
-                        IntakeConstants.kG, 1))
-                .apply(new MAXMotionConfig().cruiseVelocity(IntakeConstants.CRUISE_VELOCITY)
-                        .maxAcceleration(IntakeConstants.MAX_ACCELERATION));
-        armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+            .apply(
+                FeedForwardConfig().svacr(
+                    IntakeConstants.kS, IntakeConstants.kV, IntakeConstants.kA,
+                    IntakeConstants.kG, 1.0
+                )
+            )
+            .apply(
+                MAXMotionConfig().cruiseVelocity(IntakeConstants.CRUISE_VELOCITY)
+                    .maxAcceleration(IntakeConstants.MAX_ACCELERATION)
+            )
+        armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
 
-        armEncoder = armMotor.getEncoder();
-        rollerEncoder = rollerMotor.getEncoder();
+        armEncoder = armMotor.getEncoder()
+        rollerEncoder = rollerMotor.getEncoder()
 
-        resetEncoder(IntakeConstants.STOWED);
+        resetEncoder(IntakeConstants.STOWED)
     }
 
-    public void stopArmMotor() {
-        armMotor.stopMotor();
+    override fun stopArmMotor() = armMotor.stopMotor()
+
+    override fun stopRollerMotor() = rollerMotor.stopMotor()
+
+    override fun setArmVoltage(volts: Double) = armMotor.setVoltage(volts)
+
+    override fun setRollerVoltage(volts: Double) = rollerMotor.setVoltage(volts)
+
+    override fun setArmPosition(position: Rotation2d) {
+        controller.goal = TrapezoidProfile.State(position.rotations, 0.0)
     }
 
-    public void stopRollerMotor() {
-        rollerMotor.stopMotor();
+    override fun setRollerSpeed(speed: Double) = rollerMotor.set(speed)
+
+    override fun setArmIdleMode(isBrake: Boolean) {
+        val config = SparkMaxConfig()
+        config.idleMode(if (isBrake) IdleMode.kBrake else IdleMode.kCoast)
+        armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
     }
 
-    public void setArmVoltage(double volts) {
-        armMotor.setVoltage(volts);
+    override fun setRollerIdleMode(isBrake: Boolean) {
+        val config = SparkMaxConfig()
+        config.idleMode(if (isBrake) IdleMode.kBrake else IdleMode.kCoast)
+        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
     }
 
-    public void setRollerVoltage(double volts) {
-        rollerMotor.setVoltage(volts);
+    override fun resetEncoder(position: Rotation2d) {
+        armEncoder.position = position.rotations
     }
 
-    public void setArmPosition(Rotation2d position) {
-        controller.setGoal(new TrapezoidProfile.State(position.getRotations(), 0));
+    override fun updateInputs(inputs: IntakeIOInputs) {
+        armMotor.setVoltage(controller.calculate(armEncoder.position))
+        inputs.armVelocity = armEncoder.velocity.rotationsPerSecond
+        inputs.armAppliedVoltage = armMotor.appliedOutput.value * armMotor.busVoltage.volts
+        inputs.armCurrent = armMotor.outputCurrent.amps
+        inputs.armTemp = armMotor.motorTemperature.celsius
+        inputs.armPosition = Rotation2d.fromRotations(armEncoder.position)
+
+        inputs.rollerVelocity = rollerEncoder.velocity.rotationsPerSecond
+        inputs.rollerAppliedVoltage = rollerMotor.appliedOutput.value * rollerMotor.busVoltage.volts
+        inputs.rollerCurrent = rollerMotor.outputCurrent.amps
+        inputs.rollerTemp = rollerMotor.motorTemperature.celsius
     }
-
-    public void setRollerSpeed(double speed) {
-        rollerMotor.set(speed);
-    }
-
-    public void setArmIdleMode(boolean isBrake) {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(isBrake ? IdleMode.kBrake : IdleMode.kCoast);
-        armMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
-
-    public void setRollerIdleMode(boolean isBrake) {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(isBrake ? IdleMode.kBrake : IdleMode.kCoast);
-        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
-
-    public void resetEncoder(Rotation2d position) {
-        armEncoder.setPosition(position.getRotations());
-    }
-
-    public void updateInputs(IntakeIOInputs inputs) {
-        armMotor.setVoltage(controller.calculate(armEncoder.getPosition()));
-        inputs.armVelocity = armEncoder.getVelocity();
-        inputs.armAppliedVoltage = armMotor.getAppliedOutput() * armMotor.getBusVoltage();
-        inputs.armCurrentAmps = armMotor.getOutputCurrent();
-        inputs.armTempCelcius = armMotor.getMotorTemperature();
-        inputs.armPosition = Rotation2d.fromRotations(armEncoder.getPosition());
-
-        inputs.rollerVelocity = rollerEncoder.getVelocity();
-        inputs.rollerAppliedVoltage = rollerMotor.getAppliedOutput() * rollerMotor.getBusVoltage();
-        inputs.rollerCurrentAmps = rollerMotor.getOutputCurrent();
-        inputs.rollerTempCelcius = rollerMotor.getMotorTemperature();
-    }
-
 }

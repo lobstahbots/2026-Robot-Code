@@ -1,68 +1,61 @@
-package frc.robot.subsystems.indexer;
+package frc.robot.subsystems.indexer
 
-import org.littletonrobotics.junction.AutoLog;
+import com.lobstahbots.junction.AutoLogKt
+import com.lobstahbots.units.*
 
-public interface IndexerIO {
-    
-    @AutoLog
-    public static class IndexerIOInputs {
+interface IndexerIO {
+    @AutoLogKt
+    open class IndexerIOInputs {
         /**
          * Indexer wheel velocity in rotations/second
          */
-
-        public double indexerVelocity = 0.0;
+        var indexerVelocity = 0.rotationsPerSecond
 
         /**
          * Indexer motor current in amperes
          */
-
-        public double indexerCurrentAmps = 0.0;
+        var indexerCurrent = 0.amps
 
         /**
          * Indexer motor applied voltage in volts
          */
-
-        public double indexerAppliedVoltage = 0.0;
+        var indexerAppliedVoltage = 0.volts
 
         /**
          * Indexer motor temperature in celcius
          */
+        var indexerTemp = 0.celsius
 
-        public double indexerTempCelcius = 0.0;
         /**
          * Indexer wheel velocity in rotations/second
          */
-
-        public double feederVelocity = 0.0;
+        var feederVelocity = 0.rotationsPerSecond
 
         /**
          * Indexer motor current in amperes
          */
-
-        public double feederCurrentAmps = 0.0;
+        var feederCurrent = 0.amps
 
         /**
          * Indexer motor applied voltage in volts
          */
-
-        public double feederAppliedVoltage = 0.0;
+        var feederAppliedVoltage = 0.volts
 
         /**
-         * Indexer motor temperature in celcius
+         * Indexer motor temperature
          */
-
-        public double feederTempCelcius = 0.0;
+        var feederTemp = 0.celsius
     }
 
-    public default void updateInputs(IndexerIOInputs inputs) {}
+    fun updateInputs(inputs: IndexerIOInputs) {}
 
-    public default void setIndexerSpeed(double speed) {}
+    fun setIndexerSpeed(speed: Double) {}
 
-    public default void setFeederSpeed(double speed) {}
+    fun setFeederSpeed(speed: Double) {}
 
-    public default void stopIndexer() {}
-    
-    public default void setIdleMode(boolean isBrake) {}
+    fun stopIndexer() {}
 
-    public default void periodic() {}
+    fun setIdleMode(isBrake: Boolean) {}
+
+    fun periodic() {}
 }

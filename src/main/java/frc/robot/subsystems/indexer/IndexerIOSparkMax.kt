@@ -1,71 +1,65 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+package frc.robot.subsystems.indexer
 
-package frc.robot.subsystems.indexer;
+import com.lobstahbots.units.*
+import com.revrobotics.PersistMode
+import com.revrobotics.RelativeEncoder
+import com.revrobotics.ResetMode
+import com.revrobotics.spark.SparkLowLevel
+import com.revrobotics.spark.SparkMax
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
+import com.revrobotics.spark.config.SparkMaxConfig
+import frc.robot.Constants.*
+import frc.robot.subsystems.indexer.IndexerIO.IndexerIOInputs
 
 
-import com.revrobotics.PersistMode;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+class IndexerIOSparkMax(indexerMotorID: Int, feederMotorId: Int) : IndexerIO {
+    private val indexerMotor: SparkMax = SparkMax(indexerMotorID, SparkLowLevel.MotorType.kBrushless)
+    private val feederMotor: SparkMax = SparkMax(feederMotorId, SparkLowLevel.MotorType.kBrushless)
+    private val encoder: RelativeEncoder
+    private val feederEncoder: RelativeEncoder
 
-import frc.robot.Constants.IndexerConstants;
+    /** Creates a new Indexer.  */
+    init {
+        val config = SparkMaxConfig()
+        config.smartCurrentLimit(IndexerConstants.SPINDEXER_CURRENT_LIMIT).idleMode(IdleMode.kBrake)
+            .inverted(true).encoder.velocityConversionFactor(3.0)
 
-public class IndexerIOSparkMax implements IndexerIO {
+        indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
 
-    private final SparkMax indexerMotor;
-    private final SparkMax feederMotor;
-    private final RelativeEncoder encoder;
-    private final RelativeEncoder feederEncoder;
-    /** Creates a new Indexer. */
-    public IndexerIOSparkMax(int indexerMotorID, int feederMotorId) {
-        this.indexerMotor = new SparkMax(indexerMotorID, MotorType.kBrushless);
-        this.feederMotor = new SparkMax(feederMotorId, MotorType.kBrushless);
-    
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.smartCurrentLimit(IndexerConstants.SPINDEXER_CURRENT_LIMIT).idleMode(IdleMode.kBrake).inverted(true).encoder.velocityConversionFactor(3);
+        config.smartCurrentLimit(IndexerConstants.FEEDER_MOTOR_CURRENT_LIMIT).inverted(false)
+        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
 
-        indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        config.smartCurrentLimit(IndexerConstants.FEEDER_MOTOR_CURRENT_LIMIT).inverted(false);
-        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        encoder = indexerMotor.getEncoder();
-        feederEncoder = feederMotor.getEncoder();
+        encoder = indexerMotor.encoder
+        feederEncoder = feederMotor.encoder
     }
 
-    public void setIndexerSpeed(double speed) {
-        indexerMotor.set(speed);
+    override fun setIndexerSpeed(speed: Double) = indexerMotor.set(speed)
+
+    override fun setFeederSpeed(speed: Double) = feederMotor.set(speed)
+
+    override fun stopIndexer() {
+        indexerMotor.stopMotor()
+        feederMotor.stopMotor()
     }
 
-    public void setFeederSpeed(double speed) {
-        feederMotor.set(speed);
+    override fun setIdleMode(isBrake: Boolean) {
+        val config = SparkMaxConfig()
+        config.idleMode(if (isBrake) IdleMode.kBrake else IdleMode.kCoast)
+        indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
     }
 
-    public void stopIndexer() {
-        indexerMotor.stopMotor();
-        feederMotor.stopMotor();
-    }
-
-    public void setIdleMode(boolean isBrake) {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(isBrake ? IdleMode.kBrake : IdleMode.kCoast);
-        indexerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        feederMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
-
-    public void updateInputs(IndexerIOInputs inputs) {
-        inputs.indexerVelocity = encoder.getVelocity();
-        inputs.indexerCurrentAmps = indexerMotor.getOutputCurrent();
-        inputs.indexerAppliedVoltage = indexerMotor.getAppliedOutput() * indexerMotor.getBusVoltage();
-        inputs.indexerTempCelcius = indexerMotor.getMotorTemperature();
-        inputs.feederVelocity = feederEncoder.getVelocity();
-        inputs.feederCurrentAmps = feederMotor.getOutputCurrent();
-        inputs.feederAppliedVoltage = feederMotor.getAppliedOutput() * feederMotor.getBusVoltage();
-        inputs.feederTempCelcius = feederMotor.getMotorTemperature();
+    override fun updateInputs(inputs: IndexerIOInputs) {
+        inputs.indexerVelocity = encoder.velocity.rpm
+        inputs.indexerCurrent = indexerMotor.outputCurrent.amps
+        inputs.indexerAppliedVoltage = indexerMotor.appliedOutput.value * indexerMotor.busVoltage.volts
+        inputs.indexerTemp = indexerMotor.motorTemperature.celsius
+        inputs.feederVelocity = feederEncoder.velocity.rpm
+        inputs.feederCurrent = feederMotor.outputCurrent.amps
+        inputs.feederAppliedVoltage = feederMotor.appliedOutput.value * feederMotor.busVoltage.volts
+        inputs.feederTemp = feederMotor.motorTemperature.celsius
     }
 }
