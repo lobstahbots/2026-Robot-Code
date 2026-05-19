@@ -15,6 +15,7 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
     private val inputs = ShooterIOInputsAutoLogged()
     private var setpoint = 0.0.rpm
     private val zero = 0.0.rpm
+
     @JvmField
     val atSpeed: Trigger = Trigger {
         inputs.flywheelVelocity.isNear(setpoint, ShooterConstants.TOLERANCE) && !setpoint.isNear(
@@ -49,7 +50,7 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
      * Constructs a command which keeps the hood at an angle specified by a
      * supplier.
      *
-     * @param angle A supplier for the angle, in the form of a {@link Rotation2d}.
+     * @param angle A supplier for the angle, in the form of a [Rotation2d].
      * @return The constructed command.
      */
     fun hoodAngle(angle: () -> Rotation2d): Command {
@@ -68,10 +69,9 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
      * Constructs a command which keeps the hood at an angle specified by a supplier
      * and the flywheel at a velocity specified by a supplier.
      *
-     * @param hoodAngle        A supplier for the hood angle as a
-     *                         {@link Rotation2d}.
+     * @param hoodAngle        A supplier for the hood angle as a [Rotation2d].
      * @param flywheelVelocity A supplier for the rotational velocity of the
-     *                         flywheel as a {@link AngularVelocity} Measure object.
+     *                         flywheel as a [AngularVelocity] Measure object.
      * @return The constructed command.
      */
     fun operate(hoodAngle: () -> Rotation2d, flywheelVelocity: () -> AngularVelocity): Command {
@@ -89,17 +89,17 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
      * velocity specified by a supplier.
      *
      * @param shotData The supplier for the data for the shot, which supplies
-     *                 {@link ShotData} objects.
+     *                 [ShotData] objects.
      * @return The constructed command.
      * @see ShotData
      */
     fun operate(shotData: () -> ShotData): Command {
-        return operate({ shotData().hoodPosition() }, { shotData().flywheelVelocity() })
+        return operate({ shotData().hoodPosition }, { shotData().flywheelVelocity })
     }
 
     fun zero(): Command {
         return runEnd({ io.setHoodVoltage(-10.0) }, { io.setHoodVoltage(0.0) }).raceWith(
-                Commands.waitSeconds(0.1).andThen(Commands.idle().until { inputs.hoodCurrent > 25 })
-            ).andThen(Commands.waitSeconds(0.05).andThen({ io.resetEncoder(ShooterConstants.MIN_ANGLE) }))
+            Commands.waitSeconds(0.1).andThen(Commands.idle().until { inputs.hoodCurrent > 25 })
+        ).andThen(Commands.waitSeconds(0.05).andThen({ io.resetEncoder(ShooterConstants.MIN_ANGLE) }))
     }
 }

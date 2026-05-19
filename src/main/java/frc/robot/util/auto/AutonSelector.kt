@@ -1,123 +1,120 @@
 // Custom implementation incorporating pair key-value mapping of 6328 Mechanical
 // Advantage for on-the-fly updating auton selection code.
+package frc.robot.util.auto
 
-package frc.robot.util.auto;
+import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.networktables.StringPublisher
+import edu.wpi.first.wpilibj.DriverStation
+import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.SubsystemBase
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser
 
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+class AutonSelector<V>(
+    private val key: String,
+    defaultName: String,
+    defaultQuestions: List<AutoQuestion<V>>,
+    defaultCommands: () -> Command
+) : SubsystemBase() {
+    private val routineChooser: LoggedDashboardChooser<AutoRoutine<V>> = LoggedDashboardChooser("$key/Routine")
+    private val questionPublishers: MutableList<StringPublisher>
+    private val questionChoosers: MutableList<LoggedDashboardChooser<String>>
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+    private var lastRoutine: AutoRoutine<V>
+    private var lastResponses: MutableMap<String, V>
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
-public class AutonSelector<V> extends SubsystemBase {
-    private static final int maxQuestions = 4;
-
-    private final LoggedDashboardChooser<AutoRoutine<V>> routineChooser;
-    private final List<StringPublisher> questionPublishers;
-    private final List<LoggedDashboardChooser<String>> questionChoosers;
-
-    private AutoRoutine<V> lastRoutine;
-    private LinkedHashMap<String, V> lastResponses;
-
-    private final String key;
-
-    public AutonSelector(String key, String defaultName, List<AutoQuestion<V>> defaultQuestions,
-            Supplier<Command> defaultCommands) {
-        this.key = key;
-        routineChooser = new LoggedDashboardChooser<>(key + "/Routine");
-        AutoRoutine<V> defaultRoutine = new AutoRoutine<V>(defaultName, defaultQuestions, defaultCommands);
-        routineChooser.addDefaultOption(defaultRoutine.name(), defaultRoutine);
-        lastRoutine = defaultRoutine;
-        lastResponses = new LinkedHashMap<>();
+    init {
+        val defaultRoutine = AutoRoutine(defaultName, defaultQuestions, defaultCommands)
+        routineChooser.addDefaultOption(defaultRoutine.name, defaultRoutine)
+        lastRoutine = defaultRoutine
+        lastResponses = mutableMapOf()
 
         // Publish questions and choosers
-        questionPublishers = new ArrayList<>();
-        questionChoosers = new ArrayList<>();
-        for (int i = 0; i < maxQuestions; i++) {
-            var publisher = NetworkTableInstance.getDefault()
-                    .getStringTopic("/SmartDashboard/" + key + "/Question #" + Integer.toString(i + 1)).publish();
-            publisher.set("N/A");
-            questionPublishers.add(publisher);
-            questionChoosers
-                    .add(new LoggedDashboardChooser<>(key + "/Question #" + Integer.toString(i + 1) + " Chooser"));
-            questionChoosers.get(i).addDefaultOption("N/A", "N/A");
+        questionPublishers = mutableListOf()
+        questionChoosers = mutableListOf()
+        for (i in 0..<MAX_QUESTIONS) {
+            val publisher =
+                NetworkTableInstance.getDefault().getStringTopic("/SmartDashboard/$key/Question #${i + 1}").publish()
+            publisher.set("N/A")
+            questionPublishers.add(publisher)
+            questionChoosers.add(LoggedDashboardChooser("$key/Question #${i + 1} Chooser"))
+            questionChoosers[i].addDefaultOption("N/A", "N/A")
         }
     }
 
-    /** Registers a new auto routine that can be selected. */
-    public void addRoutine(String name, List<AutoQuestion<V>> questions, Supplier<Command> command) {
-        if (questions.size() > maxQuestions) {
-            throw new RuntimeException(
-                    "Auto routine contained more than " + Integer.toString(maxQuestions) + " questions: " + name);
+    /** Registers a new auto routine that can be selected.  */
+    fun addRoutine(name: String, questions: List<AutoQuestion<V>>, command: () -> Command) {
+        if (questions.size > MAX_QUESTIONS) {
+            throw RuntimeException(
+                "Auto routine contained more than $MAX_QUESTIONS questions: $name"
+            )
         }
-        routineChooser.addOption(name, new AutoRoutine<V>(name, questions, command));
+        routineChooser.addOption(name, AutoRoutine(name, questions, command))
     }
 
-    /** Returns the selected auto command. */
-    public Command getCommand() {
-        return lastRoutine.command().get();
-    }
+    val command: Command
+        /** Returns the selected auto command.  */
+        get() = lastRoutine.command()
 
-    /** Returns the selected question responses. */
-    public List<V> getResponses() {
-        return new ArrayList<V>(lastResponses.values());
-    }
+    val responses: List<V>
+        /** Returns the selected question responses.  */
+        get() = lastResponses.values.toList()
 
-    public void periodic() {
+    override fun periodic() {
         // Skip updates when actively running in auto
-        if (DriverStation.isAutonomousEnabled() && lastRoutine != null && lastResponses == null) { return; }
+        if (DriverStation.isAutonomousEnabled() && lastRoutine != null && lastResponses == null) {
+            return
+        }
 
         // Update the list of questions
-        var selectedRoutine = routineChooser.get();
-        if (selectedRoutine == null) { return; }
-        if (!selectedRoutine.equals(lastRoutine)) {
-            var questions = selectedRoutine.questions();
-            for (int i = 0; i < maxQuestions; i++) {
-                if (i < questions.size()) {
-                    questionPublishers.get(i).set(questions.get(i).question());
+        val selectedRoutine = routineChooser.get() ?: return
+        if (selectedRoutine != lastRoutine) {
+            val questions = selectedRoutine.questions
+            for (i in 0..<MAX_QUESTIONS) {
+                if (i < questions.size) {
+                    questionPublishers[i].set(questions[i].question)
                     // you can't change the options so we just replace the one in the list with a new one and let the old one get garbage collected
-                    questionChoosers.set(i,
-                            new LoggedDashboardChooser<>(key + "/Question #" + Integer.toString(i + 1) + " Chooser"));
-                    final var chooser = questionChoosers.get(i);
-                    questions.get(i).responses().keySet().forEach(option -> chooser.addOption(option, option));
+                    questionChoosers[i] = LoggedDashboardChooser("$key/Question #${i + 1} Chooser")
+                    val chooser = questionChoosers[i]
+                    questions[i].responses.keys.forEach { option ->
+                        chooser.addOption(
+                            option, option
+                        )
+                    }
                 } else {
-                    questionPublishers.get(i).set("");
-                    questionChoosers.set(i,
-                            new LoggedDashboardChooser<>(key + "/Question #" + Integer.toString(i + 1) + " Chooser"));
-                    questionChoosers.get(i).addDefaultOption("N/A", "N/A");
+                    questionPublishers[i].set("")
+                    questionChoosers[i] = LoggedDashboardChooser("$key/Question #${i + 1} Chooser")
+                    questionChoosers[i].addDefaultOption("N/A", "N/A")
                 }
             }
         }
 
         // Update the routine and responses
-        lastRoutine = selectedRoutine;
-        lastResponses = new LinkedHashMap<>();
-        for (int i = 0; i < lastRoutine.questions().size(); i++) {
-            String responseString = questionChoosers.get(i).get();
-            lastResponses.put(responseString == null ? "" : responseString,
-                    responseString == null
-                            ? lastRoutine.questions().get(i).responses().values().stream().findFirst().get()
-                            : lastRoutine.questions().get(i).responses().get(responseString));
+        lastRoutine = selectedRoutine
+        lastResponses = mutableMapOf()
+        lastRoutine.questions.indices.forEach { i ->
+            val responseString = questionChoosers[i].get()
+            lastResponses[responseString] =
+                (if (responseString == null) lastRoutine.questions[i].responses.values.first()
+                else lastRoutine.questions[i].responses[responseString])!!
         }
     }
 
-    /** A customizable auto routine associated with a single command. */
-    private static final record AutoRoutine<V>(String name, List<AutoQuestion<V>> questions,
-            Supplier<Command> command) {}
+    /** A customizable auto routine associated with a single command.  */
+    private data class AutoRoutine<V>(
+        val name: String, val questions: List<AutoQuestion<V>>, val command: () -> Command
+    )
 
-    /** A question to ask for customizing an auto routine. */
-    public static record AutoQuestion<V>(String question, Map<String, V> responses) {
-        public static AutoQuestion makeQuestion(String question, List<String> responses) {
-            return new AutoQuestion<String>(question, responses.stream().collect(LinkedHashMap::new,
-                    (map, option) -> map.put(option, option), LinkedHashMap::putAll));
+    /** A question to ask for customizing an auto routine.  */
+    @JvmRecord
+    data class AutoQuestion<V>(val question: String, val responses: Map<String, V>) {
+        companion object {
+            fun makeQuestion(question: String, responses: List<String>): AutoQuestion<Any> = AutoQuestion(
+                question, mutableMapOf(*responses.map { it to it }.toTypedArray())
+            )
         }
+    }
+
+    companion object {
+        private const val MAX_QUESTIONS = 4
     }
 }

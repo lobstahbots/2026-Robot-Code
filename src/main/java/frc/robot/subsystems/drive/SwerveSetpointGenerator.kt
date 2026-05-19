@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.geometry.Twist2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
-import frc.robot.util.math.LobstahMath
+import frc.robot.util.math.*
 import java.util.*
 import kotlin.math.*
 
@@ -100,14 +100,14 @@ class SwerveSetpointGenerator(
         max_iterations: Int
     ): Double {
         var f_1 = f_1
-        f_1 = LobstahMath.unwrapAngle(f_0, f_1)
+        f_1 = unwrapAngle(f_0, f_1)
         val diff = f_1 - f_0
         if (abs(diff) <= max_deviation) {
             // Can go all the way to s=1.
             return 1.0
         }
         val offset = f_0 + sign(diff) * max_deviation
-        val func = { x: Double, y: Double -> LobstahMath.unwrapAngle(f_0, atan2(y, x)) - offset }
+        val func = { x: Double, y: Double -> unwrapAngle(f_0, atan2(y, x)) - offset }
         return findRoot(func, x_0, y_0, f_0 - offset, x_1, y_1, f_1 - offset, max_iterations)
     }
 
@@ -159,7 +159,7 @@ class SwerveSetpointGenerator(
 
         // Special case: desiredState is a complete stop. In this case, module angle is arbitrary, so just use the previous angle.
         var need_to_steer = true
-        if (epsilonEquals(LobstahMath.toTwist2d(desiredState), Twist2d())) {
+        if (epsilonEquals(toTwist2d(desiredState), Twist2d())) {
             need_to_steer = false
             for (i in modules.indices) {
                 desiredModuleState[i]!!.angle = prevSetpoint.moduleStates[i].angle
@@ -180,13 +180,13 @@ class SwerveSetpointGenerator(
             prev_vy[i] = prevSetpoint.moduleStates[i].angle.sin * prevSetpoint.moduleStates[i].speedMetersPerSecond
             prev_heading[i] = prevSetpoint.moduleStates[i].angle
             if (prevSetpoint.moduleStates[i].speedMetersPerSecond < 0.0) {
-                prev_heading[i] = LobstahMath.flipRotation(prev_heading[i])
+                prev_heading[i] = flipRotation(prev_heading[i]!!)
             }
             desired_vx[i] = desiredModuleState[i]!!.angle.cos * desiredModuleState[i]!!.speedMetersPerSecond
             desired_vy[i] = desiredModuleState[i]!!.angle.sin * desiredModuleState[i]!!.speedMetersPerSecond
             desired_heading[i] = desiredModuleState[i]!!.angle
             if (desiredModuleState[i]!!.speedMetersPerSecond < 0.0) {
-                desired_heading[i] = LobstahMath.flipRotation(desired_heading[i])
+                desired_heading[i] = flipRotation(desired_heading[i]!!)
             }
             if (all_modules_should_flip) {
                 val required_rotation_rad =
@@ -197,9 +197,9 @@ class SwerveSetpointGenerator(
             }
         }
         if (all_modules_should_flip && !epsilonEquals(
-                LobstahMath.toTwist2d(prevSetpoint.chassisSpeeds),
+                toTwist2d(prevSetpoint.chassisSpeeds),
                 Twist2d()
-            ) && !epsilonEquals(LobstahMath.toTwist2d(desiredState), Twist2d())
+            ) && !epsilonEquals(toTwist2d(desiredState), Twist2d())
         ) {
             // It will (likely) be faster to stop the robot, rotate the modules in place to the complement of the desired
             // angle, and accelerate again.
@@ -310,7 +310,7 @@ class SwerveSetpointGenerator(
             }
             val deltaRotation = prevSetpoint.moduleStates[i].angle.unaryMinus().rotateBy(retStates[i]!!.angle)
             if (flipHeading(deltaRotation)) {
-                retStates[i]!!.angle = LobstahMath.flipRotation(retStates[i]!!.angle)
+                retStates[i]!!.angle = flipRotation(retStates[i]!!.angle)
                 retStates[i]!!.speedMetersPerSecond *= -1.0
             }
         }

@@ -19,9 +19,11 @@ import frc.robot.Constants.IOConstants.ControllerIOConstants
 import frc.robot.FieldConstants
 import frc.robot.subsystems.vision.Camera
 import frc.robot.util.led.LEDs
-import frc.robot.util.math.LobstahMath
+import frc.robot.util.math.getDistBetweenPoses
 import frc.robot.util.sysId.CharacterizableSubsystem
-import frc.robot.util.trajectory.AlliancePoseMirror
+import frc.robot.util.trajectory.isRedAlliance
+import frc.robot.util.trajectory.mirrorPose2d
+import frc.robot.util.trajectory.mirrorTranslation2d
 import org.littletonrobotics.junction.Logger
 import java.util.function.DoubleSupplier
 import java.util.function.Supplier
@@ -191,7 +193,7 @@ class DriveBase(
         cameras.forEach { camera ->
             camera.periodic()
             val estimatedPose = camera.getEstimatedPose(pose)
-            if (estimatedPose.pose != null && (!hasSeenTag || LobstahMath.getDistBetweenPoses(
+            if (estimatedPose.pose != null && (!hasSeenTag || getDistBetweenPoses(
                     estimatedPose.pose, pose
                 ) <= 8) && abs(
                     estimatedPose.pose.z
@@ -316,7 +318,7 @@ class DriveBase(
         )
         var linearDirection = if (linearMagnitude > 0) Rotation2d(strafeXSupplier.asDouble, strafeYSupplier.asDouble)
         else Rotation2d.kZero
-        if (AlliancePoseMirror.isRedAlliance()) linearDirection = linearDirection.plus(Rotation2d.k180deg)
+        if (isRedAlliance) linearDirection = linearDirection.plus(Rotation2d.k180deg)
         var omega = MathUtil.applyDeadband(rotationSupplier.asDouble, IOConstants.JOYSTICK_DEADBAND)
 
         // Square values
@@ -334,9 +336,9 @@ class DriveBase(
             )
         ).translation
 
-        if (assist && AlliancePoseMirror.mirrorPose2d(pose).x < FieldConstants.LinesVertical.neutralZoneNear) {
+        if (assist && mirrorPose2d(pose).x < FieldConstants.LinesVertical.neutralZoneNear) {
             val targetPose =
-                AlliancePoseMirror.mirrorTranslation2d(FieldConstants.Hub.innerCenterPoint.toTranslation2d())
+                mirrorTranslation2d(FieldConstants.Hub.innerCenterPoint.toTranslation2d())
             val targetAngle = targetPose.minus(pose.translation).angle
             omega = thetaController.calculate(
                 pose.rotation.plus(Rotation2d.kCCW_Pi_2).radians, targetAngle.radians
