@@ -291,8 +291,8 @@ class DriveBase(
         )
 
     }).until { xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint() }.andThen(stop())
-        .beforeStarting({ LEDs.getInstance().setAligning(true) })
-        .finallyDo { _ -> LEDs.getInstance().setAligning(false) }
+        .beforeStarting({ LEDs.instance?.aligning = true })
+        .finallyDo { _ -> LEDs.instance?.aligning = false }
 
 
     /**

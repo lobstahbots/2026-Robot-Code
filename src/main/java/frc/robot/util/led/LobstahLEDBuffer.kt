@@ -1,197 +1,190 @@
 // Adapted from 6328 Mechanical Advantage's 2023 Robot Code
+package frc.robot.util.led
 
-package frc.robot.util.led;
-
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer
+import edu.wpi.first.wpilibj.util.Color
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Generates and composites LED patterns
  * 
  * Adapted from 6328 Mechanical Advantage's 2023 Robot Code
  */
-public class LobstahLEDBuffer {
-    public final AddressableLEDBuffer color;
-    public final AlphaBuffer alpha;
-    public final int length;
+class LobstahLEDBuffer(val color: AddressableLEDBuffer, val alpha: AlphaBuffer) {
+    val length: Int
 
-    public LobstahLEDBuffer(AddressableLEDBuffer ledBuffer, AlphaBuffer alpha) {
-        this.color = ledBuffer;
-        this.alpha = alpha;
-        this.length = alpha.buffer.length;
-        if (ledBuffer.getLength() != alpha.buffer.length) {
-            throw new IllegalArgumentException("Length of color and alpha must be the same");
+    init {
+        this.length = alpha.buffer.size
+        require(color.getLength() == alpha.buffer.size) { "Length of color and alpha must be the same" }
+    }
+
+    constructor(
+        red: IntArray,
+        green: IntArray,
+        blue: IntArray,
+        alpha: DoubleArray
+    ) : this(AddressableLEDBuffer(red.size), AlphaBuffer(alpha)) {
+        require(!(red.size != green.size || red.size != blue.size)) { "Length of red, green, and blue must be the same" }
+        for (i in 0..<length) {
+            color.setRGB(i, red[i], green[i], blue[i])
         }
     }
 
-    public LobstahLEDBuffer(int[] red, int[] green, int[] blue, double[] alpha) {
-        this(new AddressableLEDBuffer(red.length), new AlphaBuffer(alpha));
-        if (red.length != green.length || red.length != blue.length) {
-            throw new IllegalArgumentException("Length of red, green, and blue must be the same");
+    @JvmOverloads
+    constructor(ledBuffer: AddressableLEDBuffer, alpha: Double = 1.0) : this(
+        ledBuffer,
+        AlphaBuffer(ledBuffer.length, alpha)
+    )
+
+    protected constructor(length: Int, alpha: Double) : this(AddressableLEDBuffer(length), alpha)
+
+    constructor(length: Int) : this(AddressableLEDBuffer(length), AlphaBuffer(length))
+
+    fun toAdressableLEDBuffer(): AddressableLEDBuffer {
+        val buffer = AddressableLEDBuffer(length)
+        for (i in 0..<length) {
+            buffer.setRGB(
+                i,
+                (color.getRed(i) * alpha.buffer[i]).toInt(),
+                (color.getGreen(i) * alpha.buffer[i]).toInt(),
+                (color.getBlue(i) * alpha.buffer[i]).toInt()
+            )
         }
-        for (int i = 0; i < length; i++) {
-            color.setRGB(i, red[i], green[i], blue[i]);
+        return buffer
+    }
+
+    fun mask(mask: AlphaBuffer): LobstahLEDBuffer {
+        return LobstahLEDBuffer(color, alpha.multiply(mask))
+    }
+
+    fun opacity(alpha: Double): LobstahLEDBuffer {
+        return mask(AlphaBuffer(length, alpha))
+    }
+
+    fun crop(length: Int): LobstahLEDBuffer {
+        val cropped = LobstahLEDBuffer(length)
+        for (i in 0..<min(length, this.length)) {
+            cropped.color.setLED(i, color.getLED(i))
+            cropped.alpha.buffer[i] = alpha.buffer[i]
         }
+        return cropped
     }
 
-    public LobstahLEDBuffer(AddressableLEDBuffer ledBuffer, double alpha) {
-        this(ledBuffer, new AlphaBuffer(ledBuffer.getLength(), alpha));
-    }
-
-    public LobstahLEDBuffer(AddressableLEDBuffer ledBuffer) {
-        this(ledBuffer, 1);
-    }
-
-    protected LobstahLEDBuffer(int length, double alpha) {
-        this(new AddressableLEDBuffer(length), alpha);
-    }
-
-    public LobstahLEDBuffer(int length) {
-        this(new AddressableLEDBuffer(length), new AlphaBuffer(length));
-    }
-
-    public AddressableLEDBuffer toAdressableLEDBuffer() {
-        AddressableLEDBuffer buffer = new AddressableLEDBuffer(length);
-        for (int i = 0; i < length; i++) {
-            buffer.setRGB(i,
-                (int) (color.getRed(i) * alpha.buffer[i]),
-                (int) (color.getGreen(i) * alpha.buffer[i]),
-                (int) (color.getBlue(i) * alpha.buffer[i])
-            );
+    fun flip(): LobstahLEDBuffer {
+        val flipped = LobstahLEDBuffer(length)
+        for (i in 0..<length) {
+            flipped.color.setLED(i, color.getLED(length - i - 1))
+            flipped.alpha.buffer[i] = alpha.buffer[length - i - 1]
         }
-        return buffer;
+        return flipped
     }
 
-    public static LobstahLEDBuffer solid(int length, Color color, double alpha) {
-        LobstahLEDBuffer ledBuffer = new LobstahLEDBuffer(length, alpha);
-        for (int i = 0; i < ledBuffer.length; i++) {
-            ledBuffer.color.setLED(i, color);
+    fun tile(length: Int): LobstahLEDBuffer {
+        val tiled = LobstahLEDBuffer(length)
+        for (i in 0..<this.length) {
+            val j = Math.floorMod(i, length)
+            tiled.color.setLED(i, color.getLED(j))
+            tiled.alpha.buffer[i] = alpha.buffer[j]
         }
-        return ledBuffer;
+        return tiled
     }
 
-    public static LobstahLEDBuffer solid(int length, Color color) {
-        return solid(length, color, 1);
+    fun repeat(times: Int): LobstahLEDBuffer {
+        return tile(times * length)
     }
-    
-    public static LobstahLEDBuffer layer(int outputLength, LobstahLEDBuffer... layers) {
-        LobstahLEDBuffer output = new LobstahLEDBuffer(outputLength);
-        for (LobstahLEDBuffer layer : layers) {
-            if (layer == null) continue;
-            for (int i = 0; i < Math.min(outputLength, layer.length); i++) {
-                output.color.setRGB(i,
-                    (int) (layer.color.getRed(i) * layer.alpha.buffer[i] + output.color.getRed(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i])),
-                    (int) (layer.color.getGreen(i) * layer.alpha.buffer[i] + output.color.getGreen(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i])),
-                    (int) (layer.color.getBlue(i) * layer.alpha.buffer[i] + output.color.getBlue(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i]))
-                );
 
-                output.alpha.buffer[i] = output.alpha.buffer[i] + layer.alpha.buffer[i] * (1 - output.alpha.buffer[i]);
+    fun wrappedShift(outputLength: Int, offset: Int): LobstahLEDBuffer {
+        val translated = LobstahLEDBuffer(outputLength)
+        for (i in 0..<length) {
+            val j = Math.floorMod(i + offset, outputLength)
+            translated.color.setLED(j, color.getLED(i))
+            translated.alpha.buffer[j] = alpha.buffer[i]
+        }
+        return translated
+    }
+
+    fun cycle(offset: Int): LobstahLEDBuffer {
+        return wrappedShift(length, offset)
+    }
+
+    fun shift(outputLength: Int, offset: Int): LobstahLEDBuffer {
+        val translated = LobstahLEDBuffer(outputLength)
+        for (i in max(0, -offset)..<min(length, outputLength - offset)) {
+            val j = i + offset
+            translated.color.setLED(j, color.getLED(i))
+            translated.alpha.buffer[j] = alpha.buffer[i]
+        }
+        return translated
+    }
+
+    fun layerAbove(background: LobstahLEDBuffer): LobstahLEDBuffer {
+        return layer(length, background, this)
+    }
+
+    fun layerBelow(foreground: LobstahLEDBuffer?): LobstahLEDBuffer {
+        return layer(length, this, foreground)
+    }
+
+    fun append(other: LobstahLEDBuffer?): LobstahLEDBuffer {
+        return concat(this, other)
+    }
+
+    fun prepend(other: LobstahLEDBuffer): LobstahLEDBuffer {
+        return concat(other, this)
+    }
+
+    companion object {
+        @JvmOverloads
+        fun solid(length: Int, color: Color?, alpha: Double = 1.0): LobstahLEDBuffer {
+            val ledBuffer = LobstahLEDBuffer(length, alpha)
+            for (i in 0..<ledBuffer.length) {
+                ledBuffer.color.setLED(i, color)
             }
+            return ledBuffer
         }
-        return output;
-    }
 
-    public static LobstahLEDBuffer concat(int outputLength, LobstahLEDBuffer... segments) {
-        LobstahLEDBuffer output = new LobstahLEDBuffer(outputLength);
-        int i = 0;
-        for (LobstahLEDBuffer segment : segments) {
-            if (segment == null) continue;
-            for (int j = 0; j < segment.length; j++) {
-                if (i >= outputLength) return output;
-                output.color.setLED(i, segment.color.getLED(j));
-                output.alpha.buffer[i] = segment.alpha.buffer[j];
-                i++;
+        fun layer(outputLength: Int, vararg layers: LobstahLEDBuffer?): LobstahLEDBuffer {
+            val output = LobstahLEDBuffer(outputLength)
+            for (layer in layers) {
+                if (layer == null) continue
+                for (i in 0..<min(outputLength, layer.length)) {
+                    output.color.setRGB(
+                        i,
+                        (layer.color.getRed(i) * layer.alpha.buffer[i] + output.color.getRed(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i])).toInt(),
+                        (layer.color.getGreen(i) * layer.alpha.buffer[i] + output.color.getGreen(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i])).toInt(),
+                        (layer.color.getBlue(i) * layer.alpha.buffer[i] + output.color.getBlue(i) * output.alpha.buffer[i] * (1 - layer.alpha.buffer[i])).toInt()
+                    )
+
+                    output.alpha.buffer[i] =
+                        output.alpha.buffer[i] + layer.alpha.buffer[i] * (1 - output.alpha.buffer[i])
+                }
             }
+            return output
         }
-        return output;
-    }
 
-    public static LobstahLEDBuffer concat(LobstahLEDBuffer... segments) {
-        int length = 0;
-        for (LobstahLEDBuffer segment : segments) {
-            if (segment == null) continue;
-            length += segment.length;
+        fun concat(outputLength: Int, vararg segments: LobstahLEDBuffer?): LobstahLEDBuffer {
+            val output = LobstahLEDBuffer(outputLength)
+            var i = 0
+            for (segment in segments) {
+                if (segment == null) continue
+                for (j in 0..<segment.length) {
+                    if (i >= outputLength) return output
+                    output.color.setLED(i, segment.color.getLED(j))
+                    output.alpha.buffer[i] = segment.alpha.buffer[j]
+                    i++
+                }
+            }
+            return output
         }
-        return concat(length, segments);
-    }
-    
-    public LobstahLEDBuffer mask(AlphaBuffer mask) {
-        return new LobstahLEDBuffer(color, alpha.multiply(mask));
-    }
 
-    public LobstahLEDBuffer opacity(double alpha) {
-        return mask(new AlphaBuffer(length, alpha));
-    }
-
-    public LobstahLEDBuffer crop(int length) {
-        LobstahLEDBuffer cropped = new LobstahLEDBuffer(length);
-        for (int i = 0; i < Math.min(length, this.length); i++) {
-            cropped.color.setLED(i, color.getLED(i));
-            cropped.alpha.buffer[i] = alpha.buffer[i];
+        fun concat(vararg segments: LobstahLEDBuffer?): LobstahLEDBuffer {
+            var length = 0
+            for (segment in segments) {
+                if (segment == null) continue
+                length += segment.length
+            }
+            return concat(length, *segments)
         }
-        return cropped;
-    }
-
-    public LobstahLEDBuffer flip() {
-        LobstahLEDBuffer flipped = new LobstahLEDBuffer(length);
-        for (int i = 0; i < length; i++) {
-            flipped.color.setLED(i, color.getLED(length - i - 1));
-            flipped.alpha.buffer[i] = alpha.buffer[length - i - 1];
-        }
-        return flipped;
-    }
-
-    public LobstahLEDBuffer tile(int length) {
-        LobstahLEDBuffer tiled = new LobstahLEDBuffer(length);
-        for (int i = 0; i < this.length; i++) {
-            int j = Math.floorMod(i, length);
-            tiled.color.setLED(i, color.getLED(j));
-            tiled.alpha.buffer[i] = alpha.buffer[j];
-        }
-        return tiled;
-    }
-
-    public LobstahLEDBuffer repeat(int times) {
-        return tile(times * length);
-    }
-
-    public LobstahLEDBuffer wrappedShift(int outputLength, int offset) {
-        LobstahLEDBuffer translated = new LobstahLEDBuffer(outputLength);
-        for (int i = 0; i < length; i++) {
-            int j = Math.floorMod(i + offset, outputLength);
-            translated.color.setLED(j, color.getLED(i));
-            translated.alpha.buffer[j] = alpha.buffer[i];
-        }
-        return translated;
-    }
-
-    public LobstahLEDBuffer cycle(int offset) {
-        return wrappedShift(length, offset);
-    }
-
-    public LobstahLEDBuffer shift(int outputLength, int offset) {
-        LobstahLEDBuffer translated = new LobstahLEDBuffer(outputLength);
-        for (int i = Math.max(0, -offset); i < Math.min(length, outputLength - offset); i++) {
-            int j = i + offset;
-            translated.color.setLED(j, color.getLED(i));
-            translated.alpha.buffer[j] = alpha.buffer[i];
-        }
-        return translated;
-    }
-
-    public LobstahLEDBuffer layerAbove(LobstahLEDBuffer background) {
-        return layer(length, background, this);
-    }
-
-    public LobstahLEDBuffer layerBelow(LobstahLEDBuffer foreground) {
-        return layer(length, this, foreground);
-    }
-
-    public LobstahLEDBuffer append(LobstahLEDBuffer other) {
-        return concat(this, other);
-    }
-
-    public LobstahLEDBuffer prepend(LobstahLEDBuffer other) {
-        return concat(other, this);
     }
 }
