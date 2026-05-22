@@ -8,25 +8,29 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 
 abstract class GenerateUnitTask extends DefaultTask {
-    @Input abstract Property<String> getSourceClassName()
-    @Input abstract Property<String> getOutputNamespace()
-    
+    @Input
+    abstract Property<String> getSourceClassName()
+
+    @Input
+    abstract Property<String> getOutputNamespace()
+
     // We use the project's compile classpath to find the external JAR
-    @InputFiles 
+    @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getClasspath()
-    
-    @OutputDirectory abstract DirectoryProperty getOutputDir()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
 
     @TaskAction
     void generate() {
         String className = sourceClassName.get()
         String outPkg = outputNamespace.get()
-        
+
         // 1. Create a ClassLoader from the provided classpath (JARs)
         def urls = classpath.files.collect { it.toURI().toURL() } as java.net.URL[]
         def classLoader = new URLClassLoader(urls, getClass().classLoader)
-        
+
         Class<?> registryClass = classLoader.loadClass(className)
 
         FileSpec.Builder fileBuilder = FileSpec.builder(outPkg, "${registryClass.simpleName}")
@@ -37,10 +41,8 @@ abstract class GenerateUnitTask extends DefaultTask {
                 String extensionName = formatExtensionName(field.name)
                 Class<?> returnClass = field.type.getMethod("of", double.class).getReturnType()
                 if (returnClass.simpleName != "Measure") {
-                    ClassName ktReturnType = new ClassName(
-                        returnClass.getPackage().getName(), 
-                        returnClass.getSimpleName()
-                    )
+                    ClassName ktReturnType = new ClassName(returnClass.getPackage().getName(),
+                            returnClass.getSimpleName())
 
                     fileBuilder.addImport(registryClass, field.name);
 
@@ -57,6 +59,7 @@ abstract class GenerateUnitTask extends DefaultTask {
                 }
             }
         }
+        fileBuilder.addFunction(FunSpec.builder("smartCurrentLimit").addParameter("stallLimit", new ClassName("edu.wpi.first.units.measure", "Current")).receiver(new ClassName("com.revrobotics.spark.config", "SparkBaseConfig")).returns(new ClassName("com.revrobotics.spark.config", "SparkBaseConfig")).addStatement("return smartCurrentLimit(stallLimit.baseUnitMagnitude().toInt())").build())
         fileBuilder.build().writeTo(outputDir.get().asFile)
     }
 

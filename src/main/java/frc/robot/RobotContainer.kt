@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.Commands
-import frc.robot.Constants.*
-import frc.robot.Constants.IOConstants.ControllerIOConstants
 import frc.robot.subsystems.drive.*
 import frc.robot.subsystems.indexer.Indexer
 import frc.robot.subsystems.indexer.IndexerIO
@@ -37,6 +35,18 @@ import frc.robot.util.trajectory.mirrorPose2d
 import org.ironmaple.simulation.SimulatedArena
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation
 import org.littletonrobotics.junction.Logger
+import frc.robot.Constants.DriveConstants
+import frc.robot.Constants.robot
+import frc.robot.Constants.mode
+import frc.robot.Constants.VisionConstants
+import frc.robot.Constants.RobotType
+import frc.robot.Constants.RobotMode
+import frc.robot.Constants.IntakeConstants
+import frc.robot.Constants.IndexerConstants
+import frc.robot.Constants.ShooterConstants
+import frc.robot.Constants.IOConstants.ControllerIOConstants
+import frc.robot.Constants.SimConstants
+import frc.robot.Constants.RobotConstants
 
 class RobotContainer {
     private val leds: LEDs = LEDs()
@@ -58,7 +68,7 @@ class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     init {
-        if (getRobot() == RobotType.WAFFLE && getMode() == RobotMode.REAL) {
+        if (robot == RobotType.WAFFLE && mode == RobotMode.REAL) {
             val frontLeft = SwerveModuleIOSparkMax(
                 DriveConstants.FrontLeftModuleConstants.moduleID,
                 "Front left ",
@@ -98,7 +108,7 @@ class RobotContainer {
             intake = Intake(object : IntakeIO {})
             indexer = Indexer(object : IndexerIO {})
             shooter = Shooter(object : ShooterIO {})
-        } else if (getRobot() == RobotType.COMP && getMode() == RobotMode.REAL) {
+        } else if (robot == RobotType.COMP && mode == RobotMode.REAL) {
             val frontLeft = SwerveModuleIOTalonFX(
                 DriveConstants.FrontLeftModuleConstants.moduleID,
                 "Front left ",
@@ -135,7 +145,7 @@ class RobotContainer {
             val cameras =
                 VisionConstants.COMP_CAMERA_TRANSFORMS.keys.map { name: String? -> Camera(CameraIOPhoton(name!!)) }
             driveBase = DriveBase(
-                GyroIOCanandgyro(Comp.RobotConstants.GYRO_ID),
+                GyroIOCanandgyro(RobotConstants.GYRO_ID),
                 cameras,
                 frontLeft,
                 frontRight,
@@ -156,7 +166,7 @@ class RobotContainer {
                 )
             )
             println("real")
-        } else if (getMode() != RobotMode.REPLAY) {
+        } else if (mode != RobotMode.REPLAY) {
             driveSimulation = SwerveDriveSimulation(
                 DriveConstants.MAPLE_SIM_CONFIG, Pose2d(
                     FieldConstants.RightTrench.openingTopLeft.plus(FieldConstants.RightTrench.openingTopRight).div(2.0)
@@ -189,7 +199,7 @@ class RobotContainer {
                 false
             )
 
-            intake = if (getRobot() == RobotType.SIM_BASIC) {
+            intake = if (robot == RobotType.SIM_BASIC) {
                 Intake(IntakeIOSimBasic())
             } else {
                 Intake(IntakeIOSimBasic())
@@ -214,7 +224,7 @@ class RobotContainer {
         this.autoFactory = AutoFactory(
             driveBase, intake, shooter, indexer, { autoChooser.responses }
         ) { newPose ->
-            if (Robot.isSimulation()) driveSimulation!!.setSimulationWorldPose(newPose)
+            if (Robot.isSimulation) driveSimulation!!.setSimulationWorldPose(newPose)
             driveBase.pose = newPose
         }
 
@@ -236,7 +246,7 @@ class RobotContainer {
          * 
          * @return the command to run in autonomous
          */
-        get() = if (Robot.isSimulation()) Commands.runOnce({
+        get() = if (Robot.isSimulation) Commands.runOnce({
             SimulatedArena.getInstance().resetFieldForAuto()
         }).andThen(autoChooser.command) else autoChooser.command
 
@@ -319,14 +329,14 @@ class RobotContainer {
     }
 
     fun displaySimField() {
-        if (getMode() != RobotMode.SIM) return
+        if (mode != RobotMode.SIM) return
 
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation!!.simulatedDriveTrainPose)
         Logger.recordOutput(
             "FieldSimulation/Fuel", *SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel")
         )
         addSimPose(Pose3d(driveSimulation!!.simulatedDriveTrainPose))
-        if (getRobot() == RobotType.SIM_BASIC) driveBase.resetPose(driveSimulation!!.simulatedDriveTrainPose)
+        if (robot == RobotType.SIM_BASIC) driveBase.resetPose(driveSimulation!!.simulatedDriveTrainPose)
     }
 
     fun setIdleMode(isBrakeMode: Boolean) {

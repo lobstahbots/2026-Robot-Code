@@ -5,7 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.units.measure.AngularVelocity
 
-import frc.robot.Constants.*
+import frc.robot.Constants.ShooterConstants
+import frc.robot.Constants.SimConstants
 
 class ShooterIOSimBasic : ShooterIO {
     private var state = TrapezoidProfile.State(ShooterConstants.MIN_ANGLE.rotations, 0.0)

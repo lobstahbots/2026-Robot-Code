@@ -30,9 +30,9 @@ class SwerveModuleIOSim(
     init {
         this.angularOffset = Rotation2d.fromDegrees(angularOffsetDegrees)
         driveMotor = moduleSimulation.useGenericMotorControllerForDrive()
-            .withCurrentLimit(Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT.amps)
+            .withCurrentLimit(Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT)
         angleMotor = moduleSimulation.useGenericControllerForSteer()
-            .withCurrentLimit(Constants.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT.amps)
+            .withCurrentLimit(Constants.DriveConstants.ANGLE_MOTOR_CURRENT_LIMIT)
     }
 
     override fun updateInputs(inputs: ModuleIOInputs) {

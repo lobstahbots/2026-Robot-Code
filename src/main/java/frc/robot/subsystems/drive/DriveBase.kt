@@ -14,7 +14,9 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.Field2d
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import frc.robot.Constants.*
+import frc.robot.Constants.DriveConstants
+import frc.robot.Constants.RobotConstants
+import frc.robot.Constants.IOConstants
 import frc.robot.Constants.IOConstants.ControllerIOConstants
 import frc.robot.FieldConstants
 import frc.robot.subsystems.vision.Camera
@@ -224,7 +226,7 @@ class DriveBase(
             Twist3d(
                 0.0,
                 0.0,
-                abs(gyroInputs.pitchPosition.radians) * RobotConstants.TRACK_WIDTH / 2.0,
+                abs(gyroInputs.pitchPosition.radians) * RobotConstants.TRACK_WIDTH.baseUnitMagnitude() / 2.0,
                 0.0,
                 gyroInputs.pitchPosition.radians,
                 0.0
@@ -233,7 +235,7 @@ class DriveBase(
             Twist3d(
                 0.0,
                 0.0,
-                abs(gyroInputs.rollPosition.radians) * RobotConstants.TRACK_WIDTH / 2.0,
+                abs(gyroInputs.rollPosition.radians) * RobotConstants.TRACK_WIDTH.baseUnitMagnitude() / 2.0,
                 gyroInputs.rollPosition.radians,
                 0.0,
                 0.0

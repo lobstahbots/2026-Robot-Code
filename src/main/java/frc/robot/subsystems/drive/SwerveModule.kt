@@ -4,6 +4,7 @@
 package frc.robot.subsystems.drive
 
 import com.lobstahbots.units.meters
+import com.lobstahbots.units.metersPerSecond
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
@@ -95,7 +96,7 @@ class SwerveModule(
         desiredState.speedMetersPerSecond *= cos(angleController.error)
 
         // Run drive controller
-        val velocityRadPerSec = desiredState.speedMetersPerSecond / (Constants.RobotConstants.WHEEL_DIAMETER / 2)
+        val velocityRadPerSec = desiredState.speedMetersPerSecond / (Constants.RobotConstants.WHEEL_DIAMETER.baseUnitMagnitude() / 2)
         io.setDriveVoltage(
             feedforward.calculate(velocityRadPerSec)
                     + driveController.calculate(inputs.driveVelocity.`in`(Units.RadiansPerSecond), velocityRadPerSec)
@@ -130,13 +131,13 @@ class SwerveModule(
         /**
          * @returns The current drive position of the module in meters.
          */
-        get() = inputs.drivePosition.`in`(Units.Radians) * Math.PI * Constants.RobotConstants.WHEEL_DIAMETER
+        get() = inputs.drivePosition.`in`(Units.Radians) * Math.PI * Constants.RobotConstants.WHEEL_DIAMETER.baseUnitMagnitude()
 
     val velocityMetersPerSec: Double
         /**
          * @returns The current drive velocity of the module in meters per second.
          */
-        get() = inputs.driveVelocity.`in`(Units.RadiansPerSecond) * Constants.RobotConstants.WHEEL_DIAMETER / 2.0
+        get() = inputs.driveVelocity.`in`(Units.RadiansPerSecond) * Constants.RobotConstants.WHEEL_DIAMETER.baseUnitMagnitude() / 2.0
 
     val position: SwerveModulePosition
         /**

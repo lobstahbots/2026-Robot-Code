@@ -26,7 +26,9 @@ import edu.wpi.first.units.measure.AngularVelocity
 import edu.wpi.first.units.measure.Current
 import edu.wpi.first.units.measure.Temperature
 import edu.wpi.first.units.measure.Voltage
-import frc.robot.Constants.*
+import frc.robot.Constants.DriveConstants
+import frc.robot.Constants.RobotConstants
+import frc.robot.Constants.SwerveConstants
 import frc.robot.subsystems.drive.SwerveModuleIO.ModuleIOInputs
 import frc.robot.util.tempControl.MonitoredSparkMax
 import frc.robot.util.tempControl.TemperatureMonitor
@@ -72,8 +74,8 @@ class SwerveModuleIOTalonFX(
 
         val driveMotorConfig = TalonFXConfiguration()
             .withCurrentLimits(
-                CurrentLimitsConfigs().withSupplyCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT.toDouble())
-                    .withStatorCurrentLimit((3 * DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT).toDouble())
+                CurrentLimitsConfigs().withSupplyCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT)
+                    .withStatorCurrentLimit(DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT * 3.0)
             )
             .withFeedback(FeedbackConfigs().withSensorToMechanismRatio(RobotConstants.DRIVE_GEAR_RATIO))
             .withMotorOutput(MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
