@@ -36,12 +36,6 @@ interface SwerveModuleIO {
     /** Run the turn motor at the specified voltage.  */
     fun setTurnVoltage(volts: Double) {}
 
-    /** Set the angle to the angle specified in the module state.  */
-    fun setAngle(optimizedDesiredState: SwerveModuleState) {}
-
-    /** Set the drive speed to the angle specified in the module state.  */
-    fun setDriveSpeed(optimizedDesiredState: SwerveModuleState, isOpenLoop: Boolean) {}
-
     /** Enable or disable brake mode on the drive motor.  */
     fun setDriveIdleMode(mode: IdleMode) {}
 

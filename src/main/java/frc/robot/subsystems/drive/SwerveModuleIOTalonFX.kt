@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot.subsystems.drive
 
+import com.ctre.phoenix6.BaseStatusSignal
 import com.ctre.phoenix6.StatusSignal
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs
 import com.ctre.phoenix6.configs.FeedbackConfigs
@@ -151,6 +152,15 @@ class SwerveModuleIOTalonFX(
     }
 
     override fun updateInputs(inputs: ModuleIOInputs) {
+        BaseStatusSignal.refreshAll(
+            drivePosition,
+            driveVelocity,
+            driveVoltage,
+            driveCurrent,
+            driveSupply,
+            driveTemperature
+        )
+
         inputs.drivePosition = drivePosition.value
         inputs.driveVelocity = driveVelocity.value
         inputs.driveAppliedVoltage = driveVoltage.value
