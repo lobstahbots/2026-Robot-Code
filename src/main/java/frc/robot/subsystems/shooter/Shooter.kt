@@ -44,6 +44,8 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
     override fun periodic() {
         io.updateInputs(inputs)
         Logger.processInputs("Shooter", inputs)
+        Logger.recordOutput("Shooter/AtSpeed", atSpeed.asBoolean)
+        Logger.recordOutput("Shooter/Setpoint", setpoint)
     }
 
     /**
@@ -57,8 +59,12 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
         return run { io.setHoodPosition(angle()) }
     }
 
+    fun setVelocity(velocity: AngularVelocity) = io.setFlywheelVelocity(velocity.also { setpoint = it })
+
     fun velocity(velocity: () -> AngularVelocity): Command {
-        return runEnd({ io.setFlywheelVelocity(velocity()) }, { io.setFlywheelVelocity(0.0.rotationsPerSecond) })
+        return runEnd(
+            { setVelocity(velocity()) },
+            { setVelocity(0.rpm) })
     }
 
     fun voltage(voltage: Double): Command {
@@ -77,9 +83,10 @@ class Shooter(val io: ShooterIO) : SubsystemBase() {
     fun operate(hoodAngle: () -> Rotation2d, flywheelVelocity: () -> AngularVelocity): Command {
         return runEnd({
             io.setHoodPosition(hoodAngle())
-            io.setFlywheelVelocity(flywheelVelocity())
+            setVelocity(flywheelVelocity())
         }, {
             io.setHoodPosition(inputs.hoodPosition)
+            setpoint = 0.rpm
             io.setFlywheelVoltage(0.0)
         })
     }

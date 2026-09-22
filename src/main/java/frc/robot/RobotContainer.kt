@@ -47,6 +47,7 @@ import frc.robot.Constants.ShooterConstants
 import frc.robot.Constants.IOConstants.ControllerIOConstants
 import frc.robot.Constants.SimConstants
 import frc.robot.Constants.RobotConstants
+import frc.robot.subsystems.intake.IntakeIOTalonFX
 
 class RobotContainer {
     private val leds: LEDs = LEDs()
@@ -153,7 +154,7 @@ class RobotContainer {
                 backRight,
                 false
             )
-            intake = Intake(IntakeIOSparkMax(IntakeConstants.ARM_ID, IntakeConstants.ROLLER_ID))
+            intake = Intake(IntakeIOTalonFX(IntakeConstants.ARM_ID, IntakeConstants.ROLLER_ID))
             indexer = Indexer(
                 IndexerIOSparkMax(IndexerConstants.INDEXER_MOTOR_ID, IndexerConstants.FEEDER_MOTOR_ID)
             )
@@ -279,8 +280,8 @@ class RobotContainer {
         Controllers.driver.LTButton.onFalse(indexer.feed().withTimeout(1.0).andThen(shooter.idle()))
 
         //Operator Test
-        Controllers.operator.YButton.onTrue(intake.deploy())
-        Controllers.operator.AButton.onTrue(intake.stow())
+        Controllers.driver.YButton.onTrue(intake.deploy())
+        Controllers.driver.AButton.onTrue(intake.stow())
         Controllers.operator.leftPaddle.whileTrue(intake.spin())
         Controllers.operator.RBButton.whileTrue(indexer.spindex())
     }

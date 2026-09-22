@@ -344,8 +344,8 @@ object Constants {
         const val ARM_DEPLOY_CURRENT_THRESHOLD = 20.0
         const val GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0)
 
-        const val kP = 50.0
-        const val kI = 0.0
+        const val kP = 20.0
+        const val kI = 0.1
         const val kD = 0.0
         const val kS = 0.0
         const val kV = 0.0
@@ -355,7 +355,7 @@ object Constants {
         const val MAX_ACCELERATION = 30.0
         const val ALLOWED_PROFILE_ERROR = 0.4 // rotations
 
-        val DEPLOYED: Rotation2d = Rotation2d.fromRadians(0.855)
+        val DEPLOYED: Rotation2d = Rotation2d.fromDegrees(70.0)
         val STOWED: Rotation2d = Rotation2d.kZero
         val MAX_ERROR: Rotation2d = Rotation2d.fromDegrees(3.0)
 
