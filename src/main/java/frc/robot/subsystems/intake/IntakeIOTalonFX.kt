@@ -10,35 +10,26 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.hardware.TalonFX
 import com.ctre.phoenix6.signals.NeutralModeValue
 import com.lobstahbots.units.*
-import com.revrobotics.PersistMode
-import com.revrobotics.RelativeEncoder
-import com.revrobotics.ResetMode
-import com.revrobotics.spark.SparkLowLevel
-import com.revrobotics.spark.SparkMax
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode
-import com.revrobotics.spark.config.SparkMaxConfig
 import edu.wpi.first.math.controller.ProfiledPIDController
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.trajectory.TrapezoidProfile
-import edu.wpi.first.units.measure.Angle
-import edu.wpi.first.units.measure.AngularVelocity
-import edu.wpi.first.units.measure.Current
-import edu.wpi.first.units.measure.Temperature
-import edu.wpi.first.units.measure.Voltage
+import edu.wpi.first.units.measure.*
 import frc.robot.Constants.IntakeConstants
 import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs
 
 class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
     private val armMotor: TalonFX = TalonFX(armMotorID)
-    private val rollerMotor: SparkMax = SparkMax(rollerMotorID, SparkLowLevel.MotorType.kBrushless)
-
-    private val rollerEncoder: RelativeEncoder
+    private val rollerMotor: TalonFX = TalonFX(rollerMotorID)
 
     private val armPosition: StatusSignal<Angle>
     private val armVelocity: StatusSignal<AngularVelocity>
     private val armTemp: StatusSignal<Temperature>
     private val armAppliedVoltage: StatusSignal<Voltage>
     private val armCurrent: StatusSignal<Current>
+    private val rollerVelocity: StatusSignal<AngularVelocity>
+    private val rollerTemp: StatusSignal<Temperature>
+    private val rollerAppliedVoltage: StatusSignal<Voltage>
+    private val rollerCurrent: StatusSignal<Current>
 
     private val controller = ProfiledPIDController(
         IntakeConstants.kP,
@@ -48,12 +39,14 @@ class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
     )
 
     init {
-        val config = SparkMaxConfig()
 
-        config.smartCurrentLimit(IntakeConstants.CURRENT_LIMIT).idleMode(IdleMode.kBrake)
-            .inverted(true).encoder.velocityConversionFactor(1 / 60.0)
-
-        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+        rollerMotor.configurator.apply(
+            TalonFXConfiguration().withCurrentLimits(
+                CurrentLimitsConfigs().withSupplyCurrentLimit(40.amps).withStatorCurrentLimit(
+                    IntakeConstants.CURRENT_LIMIT
+                )
+            ).withMotorOutput(MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+        )
 
         val armConfig = TalonFXConfiguration()
 
@@ -69,7 +62,10 @@ class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
         armAppliedVoltage = armMotor.motorVoltage
         armCurrent = armMotor.statorCurrent
 
-        rollerEncoder = rollerMotor.getEncoder()
+        rollerVelocity = rollerMotor.velocity
+        rollerTemp = rollerMotor.deviceTemp
+        rollerAppliedVoltage = rollerMotor.motorVoltage
+        rollerCurrent = rollerMotor.statorCurrent
 
         resetEncoder(IntakeConstants.STOWED)
     }
@@ -93,9 +89,7 @@ class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
     }
 
     override fun setRollerIdleMode(isBrake: Boolean) {
-        val config = SparkMaxConfig()
-        config.idleMode(if (isBrake) IdleMode.kBrake else IdleMode.kCoast)
-        rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)
+        rollerMotor.configurator.apply(MotorOutputConfigs().withNeutralMode(if (isBrake) NeutralModeValue.Brake else NeutralModeValue.Coast))
     }
 
     override fun resetEncoder(position: Rotation2d) {
@@ -103,17 +97,30 @@ class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
     }
 
     override fun updateInputs(inputs: IntakeIOInputs) {
-        StatusSignal.refreshAll(armPosition, armVelocity, armAppliedVoltage, armCurrent, armTemp, armPosition)
+        StatusSignal.refreshAll(
+            armPosition,
+            armVelocity,
+            armAppliedVoltage,
+            armCurrent,
+            armTemp,
+            armPosition,
+            rollerVelocity,
+            rollerAppliedVoltage,
+            rollerTemp,
+            rollerCurrent
+        )
+
         armMotor.setVoltage(controller.calculate(armPosition.valueAsDouble))
+
         inputs.armVelocity = armVelocity.value
         inputs.armAppliedVoltage = armAppliedVoltage.value
         inputs.armCurrent = armCurrent.value
         inputs.armTemp = armTemp.value
         inputs.armPosition = Rotation2d(armPosition.value)
 
-        inputs.rollerVelocity = rollerEncoder.velocity.rotationsPerSecond
-        inputs.rollerAppliedVoltage = rollerMotor.appliedOutput.value * rollerMotor.busVoltage.volts
-        inputs.rollerCurrent = rollerMotor.outputCurrent.amps
-        inputs.rollerTemp = rollerMotor.motorTemperature.celsius
+        inputs.rollerVelocity = rollerVelocity.value
+        inputs.rollerAppliedVoltage = rollerAppliedVoltage.value
+        inputs.rollerCurrent = rollerCurrent.value
+        inputs.rollerTemp = rollerTemp.value
     }
 }
