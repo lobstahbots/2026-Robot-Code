@@ -131,7 +131,7 @@ class SwerveModule(
         /**
          * @returns The current drive position of the module in meters.
          */
-        get() = inputs.drivePosition.`in`(Units.Radians) * Math.PI * Constants.RobotConstants.WHEEL_DIAMETER.baseUnitMagnitude()
+        get() = inputs.drivePosition.`in`(Units.Radians) * Constants.RobotConstants.WHEEL_DIAMETER.baseUnitMagnitude() / 2.0
 
     val velocityMetersPerSec: Double
         /**
