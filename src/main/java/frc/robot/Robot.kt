@@ -120,9 +120,8 @@ class Robot : LoggedRobot() {
      * [RobotContainer] class.
      */
     override fun autonomousInit() {
-        autonomousCommand = robotContainer?.autonomousCommand.also {
-            CommandScheduler.getInstance().schedule(autonomousCommand)
-        }
+        autonomousCommand = robotContainer?.autonomousCommand
+        autonomousCommand?.let { CommandScheduler.getInstance().schedule(it) }
     }
 
     /** This function is called periodically during autonomous.  */

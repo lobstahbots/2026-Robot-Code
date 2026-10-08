@@ -20,13 +20,13 @@ class AutonSelector<V>(
     private val questionChoosers: MutableList<LoggedDashboardChooser<String>>
 
     private var lastRoutine: AutoRoutine<V>
-    private var lastResponses: MutableMap<String, V>
+    private var lastResponses: List<V>
 
     init {
         val defaultRoutine = AutoRoutine(defaultName, defaultQuestions, defaultCommands)
         routineChooser.addDefaultOption(defaultRoutine.name, defaultRoutine)
         lastRoutine = defaultRoutine
-        lastResponses = mutableMapOf()
+        lastResponses = defaultQuestions.map { it.responses.values.first() }
 
         // Publish questions and choosers
         questionPublishers = mutableListOf()
@@ -39,6 +39,7 @@ class AutonSelector<V>(
             questionChoosers.add(LoggedDashboardChooser("$key/Question #${i + 1} Chooser"))
             questionChoosers[i].addDefaultOption("N/A", "N/A")
         }
+        updateQuestions(defaultQuestions)
     }
 
     /** Registers a new auto routine that can be selected.  */
@@ -57,45 +58,43 @@ class AutonSelector<V>(
 
     val responses: List<V>
         /** Returns the selected question responses.  */
-        get() = lastResponses.values.toList()
+        get() = lastResponses.toList()
 
     override fun periodic() {
         // Skip updates when actively running in auto
-        if (DriverStation.isAutonomousEnabled() && lastRoutine != null && lastResponses == null) {
+        if (DriverStation.isAutonomousEnabled()) {
             return
         }
 
         // Update the list of questions
         val selectedRoutine = routineChooser.get() ?: return
         if (selectedRoutine != lastRoutine) {
-            val questions = selectedRoutine.questions
-            for (i in 0..<MAX_QUESTIONS) {
-                if (i < questions.size) {
-                    questionPublishers[i].set(questions[i].question)
-                    // you can't change the options so we just replace the one in the list with a new one and let the old one get garbage collected
-                    questionChoosers[i] = LoggedDashboardChooser("$key/Question #${i + 1} Chooser")
-                    val chooser = questionChoosers[i]
-                    questions[i].responses.keys.forEach { option ->
-                        chooser.addOption(
-                            option, option
-                        )
-                    }
-                } else {
-                    questionPublishers[i].set("")
-                    questionChoosers[i] = LoggedDashboardChooser("$key/Question #${i + 1} Chooser")
-                    questionChoosers[i].addDefaultOption("N/A", "N/A")
-                }
-            }
+            updateQuestions(selectedRoutine.questions)
         }
 
         // Update the routine and responses
         lastRoutine = selectedRoutine
-        lastResponses = mutableMapOf()
-        lastRoutine.questions.indices.forEach { i ->
+        lastResponses = lastRoutine.questions.mapIndexed { i, question ->
             val responseString = questionChoosers[i].get()
-            lastResponses[responseString] =
-                (if (responseString == null) lastRoutine.questions[i].responses.values.first()
-                else lastRoutine.questions[i].responses[responseString])!!
+            question.responses[responseString] ?: question.responses.values.first()
+        }
+    }
+
+    private fun updateQuestions(questions: List<AutoQuestion<V>>) {
+        for (i in 0..<MAX_QUESTIONS) {
+            questionChoosers[i] = LoggedDashboardChooser("$key/Question #${i + 1} Chooser")
+            val chooser = questionChoosers[i]
+            if (i < questions.size) {
+                val question = questions[i]
+                questionPublishers[i].set(question.question)
+                question.responses.keys.forEachIndexed { optionIndex, option ->
+                    if (optionIndex == 0) chooser.addDefaultOption(option, option)
+                    else chooser.addOption(option, option)
+                }
+            } else {
+                questionPublishers[i].set("N/A")
+                chooser.addDefaultOption("N/A", "N/A")
+            }
         }
     }
 

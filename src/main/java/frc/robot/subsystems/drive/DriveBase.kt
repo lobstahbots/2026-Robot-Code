@@ -212,11 +212,13 @@ class DriveBase(
                 Logger.recordOutput("Vision/" + camera.name + "Used", true)
             } else Logger.recordOutput("Vision/" + camera.name + "Used", false)
         }
-        pose = Pose2d(
-            MathUtil.clamp(pose.x, 0.0, FieldConstants.fieldLength),
-            MathUtil.clamp(pose.y, 0.0, FieldConstants.fieldWidth),
-            pose.rotation
-        )
+        val currentPose = pose
+        val clampedX = MathUtil.clamp(currentPose.x, 0.0, FieldConstants.fieldLength)
+        val clampedY = MathUtil.clamp(currentPose.y, 0.0, FieldConstants.fieldWidth)
+        // Preserve estimator history unless the field boundary actually requires a correction.
+        if (clampedX != currentPose.x || clampedY != currentPose.y) {
+            pose = Pose2d(clampedX, clampedY, currentPose.rotation)
+        }
         field.robotPose = pose
         Logger.recordOutput("Odometry", pose)
         Logger.recordOutput("Visionless", visionlessOdometry.estimatedPosition)
