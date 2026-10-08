@@ -49,7 +49,7 @@ data class ShotData(val flywheelVelocity: AngularVelocity, val hoodPosition: Rot
          * [0, 1]
          * @see edu.wpi.first.math.interpolation.InverseInterpolator
          */
-        fun inverseInterpolate(a: Distance, b: Distance, x: Distance): Double = x.div(b.minus(a)).baseUnitMagnitude()
+        fun inverseInterpolate(a: Distance, b: Distance, x: Distance): Double = x.minus(a).div(b.minus(a)).baseUnitMagnitude()
 
         val shotMap: InterpolatingTreeMap<Distance, ShotData> = InterpolatingTreeMap(
             Companion::inverseInterpolate, Companion::interpolate
