@@ -49,7 +49,7 @@ class Camera(private val io: CameraIO) {
             )) / ln(inputs.totalArea + Math.E) // Multiply by the scaling for the area of the AprilTags
         )
 
-        Logger.recordOutput("Vision/" + this.name + "/ResolvedPose", resolvedPose)
+        resolvedPose?.let { Logger.recordOutput("Vision/" + this.name + "/ResolvedPose", resolvedPose) }
         Logger.recordOutput("Vision/" + this.name + "/stdev", stdev.toString())
 
         if (resolvedPose != null && resolvedPose.x == 0.0 && resolvedPose.y == 0.0) resolvedPose = null

@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs
 import com.ctre.phoenix6.configs.MotorOutputConfigs
 import com.ctre.phoenix6.configs.TalonFXConfiguration
 import com.ctre.phoenix6.hardware.TalonFX
+import com.ctre.phoenix6.signals.InvertedValue
 import com.ctre.phoenix6.signals.NeutralModeValue
 import com.lobstahbots.units.*
 import edu.wpi.first.math.controller.ProfiledPIDController
@@ -45,7 +46,7 @@ class IntakeIOTalonFX(armMotorID: Int, rollerMotorID: Int) : IntakeIO {
                 CurrentLimitsConfigs().withSupplyCurrentLimit(40.amps).withStatorCurrentLimit(
                     IntakeConstants.CURRENT_LIMIT
                 )
-            ).withMotorOutput(MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+            ).withMotorOutput(MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake).withInverted(InvertedValue.Clockwise_Positive))
         )
 
         val armConfig = TalonFXConfiguration()

@@ -339,7 +339,7 @@ object Constants {
     }
 
     object IntakeConstants {
-        val CURRENT_LIMIT = 100.amps
+        val CURRENT_LIMIT = 80.amps
         const val ARM_DEPLOY_SPEED = 1.0
         const val ARM_DEPLOY_CURRENT_THRESHOLD = 20.0
         const val GEAR_RATIO = (60 / 16.0) * (60 / 26.0) * (40 / 20.0)

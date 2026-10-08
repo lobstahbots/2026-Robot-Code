@@ -57,34 +57,34 @@ data class ShotData(val flywheelVelocity: AngularVelocity, val hoodPosition: Rot
 
         init {
             shotMap.put(
-                1.35.meters, ShotData(3300.rpm, Rotation2d.fromDegrees(15.0), 1.second)
+                1.35.meters, ShotData(3350.rpm, Rotation2d.fromDegrees(20.0), 1.second)
             )
             shotMap.put(
-                1.6.meters, ShotData(3400.rpm, Rotation2d.fromDegrees(18.0), 1.second)
+                1.6.meters, ShotData(3550.rpm, Rotation2d.fromDegrees(24.0), 1.second)
             )
             shotMap.put(
-                1.95.meters, ShotData(3500.rpm, Rotation2d.fromDegrees(22.0), 1.second)
+                1.95.meters, ShotData(3650.rpm, Rotation2d.fromDegrees(29.0), 1.second)
             )
             shotMap.put(
-                2.5.meters, ShotData(3625.rpm, Rotation2d.fromDegrees(25.0), 1.second)
+                2.5.meters, ShotData(3750.rpm, Rotation2d.fromDegrees(33.0), 1.second)
             )
             shotMap.put(
-                2.92.meters, ShotData(3700.rpm, Rotation2d.fromDegrees(29.0), 1.second)
+                2.92.meters, ShotData(3925.rpm, Rotation2d.fromDegrees(36.0), 1.second)
             )
             shotMap.put(
-                3.35.meters, ShotData(3850.rpm, Rotation2d.fromDegrees(34.0), 1.second)
+                3.35.meters, ShotData(3950.rpm, Rotation2d.fromDegrees(40.0), 1.second)
             )
             shotMap.put(
-                3.95.meters, ShotData(3925.rpm, Rotation2d.fromDegrees(38.0), 1.second)
+                3.95.meters, ShotData(4000.rpm, Rotation2d.fromDegrees(43.0), 1.second)
             )
             shotMap.put(
-                4.58.meters, ShotData(4000.rpm, Rotation2d.fromDegrees(43.0), 1.second)
+                4.58.meters, ShotData(4050.rpm, Rotation2d.fromDegrees(46.0), 1.second)
             )
             shotMap.put(
-                4.91.meters, ShotData(4050.rpm, Rotation2d.fromDegrees(43.0), 1.second)
+                4.91.meters, ShotData(4100.rpm, Rotation2d.fromDegrees(46.5), 1.second)
             )
             shotMap.put(
-                5.40.meters, ShotData(4125.rpm, Rotation2d.fromDegrees(46.0), 1.second)
+                5.40.meters, ShotData(4125.rpm, Rotation2d.fromDegrees(47.5), 1.second)
             )
         }
 

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drive
 
+import com.lobstahbots.units.inch
 import com.revrobotics.spark.config.SparkBaseConfig
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.math.controller.PIDController
@@ -341,7 +342,8 @@ class DriveBase(
         if (assist && mirrorPose2d(pose).x < FieldConstants.LinesVertical.neutralZoneNear) {
             val targetPose =
                 mirrorTranslation2d(FieldConstants.Hub.innerCenterPoint.toTranslation2d())
-            val targetAngle = targetPose.minus(pose.translation).angle
+            val targetAngle =
+                targetPose.minus(pose.translation - Translation2d(6.inch, 12.inch).rotateBy(pose.rotation)).angle
             omega = thetaController.calculate(
                 pose.rotation.plus(Rotation2d.kCCW_Pi_2).radians, targetAngle.radians
             )
