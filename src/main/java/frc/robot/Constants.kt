@@ -378,8 +378,9 @@ object Constants {
 
         const val FLYWHEEL_GEAR_RATIO = (16 / 10.0) * (15 / 30.0)
         const val MAXPLANETARY_RATIO = 3.0
+        const val PULLEY_RATIO = 24.0 / 16.0
         const val HERRINGBONE_RATIO = 158 / 10.0
-        const val HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * HERRINGBONE_RATIO
+        const val HOOD_GEAR_RATIO = MAXPLANETARY_RATIO * PULLEY_RATIO * HERRINGBONE_RATIO
 
         const val HOOD_kP = 150.0
         const val HOOD_kI = 0.0
